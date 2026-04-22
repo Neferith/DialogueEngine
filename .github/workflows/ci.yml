@@ -1,0 +1,67 @@
+name: CI / Publish
+
+on:
+  push:
+    branches: [main]
+    tags:    ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Build + Tests ──────────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test --no-build --configuration Release --verbosity normal
+
+  # ── Publish NuGet (sur tag v*) ─────────────────────────────────────────
+  publish:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+          # Décommente si tu utilises GitHub Packages :
+          # source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        # env:
+        #   NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pack DialogueEngine.Core
+        run: dotnet pack src/DialogueEngine.Core/DialogueEngine.Core.csproj
+             --configuration Release --no-restore --output ./nupkgs
+
+      - name: Pack DialogueEngine.Serialization
+        run: dotnet pack src/DialogueEngine.Serialization/DialogueEngine.Serialization.csproj
+             --configuration Release --no-restore --output ./nupkgs
+
+      # ── Option A : NuGet.org (recommandé) ──────────────────────────────
+      - name: Push to NuGet.org
+        run: dotnet nuget push ./nupkgs/*.nupkg
+             --api-key ${{ secrets.NUGET_API_KEY }}
+             --source https://api.nuget.org/v3/index.json
+             --skip-duplicate
+
+      # ── Option B : GitHub Packages (commenter Option A et décommenter ici)
+      # - name: Push to GitHub Packages
+      #   run: dotnet nuget push ./nupkgs/*.nupkg
+      #        --api-key ${{ secrets.GITHUB_TOKEN }}
+      #        --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+      #        --skip-duplicate

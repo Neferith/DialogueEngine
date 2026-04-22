@@ -1,0 +1,39 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Sample2.ViewModels"
+        xmlns:views="using:Sample2.Views"
+        x:Class="Sample2.Views.GameWindow"
+        x:DataType="vm:GameViewModel"
+        Title="Sample2 — Mission Infiltration"
+        Width="640" Height="480"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+
+  <Panel>
+
+    <ContentControl IsVisible="{Binding IsSetup}" Content="{Binding CurrentPhase}">
+      <ContentControl.DataTemplates>
+        <DataTemplate x:DataType="vm:SetupViewModel">
+          <views:SetupView />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
+    <ContentControl IsVisible="{Binding IsMap}" Content="{Binding CurrentPhase}">
+      <ContentControl.DataTemplates>
+        <DataTemplate x:DataType="vm:MapViewModel">
+          <views:MapView />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
+    <ContentControl IsVisible="{Binding IsOutcome}" Content="{Binding CurrentPhase}">
+      <ContentControl.DataTemplates>
+        <DataTemplate x:DataType="vm:OutcomeViewModel">
+          <views:OutcomeView />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
+  </Panel>
+</Window>

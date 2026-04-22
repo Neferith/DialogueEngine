@@ -1,0 +1,53 @@
+{
+  "id": "dialogue_officer_initial",
+  "nodes": [
+    {
+      "id": "greeting",
+      "text": "Halte ! Identifiez-vous. Cette zone est réservée au personnel accrédité.",
+      "responses": [
+        {
+          "text": "[Charme] Vous semblez épuisé, mon ami. Laissez-moi vous simplifier la vie...",
+          "conditionKey": "has_charm",
+          "consequenceKey": "set_charmed_and_give_pass",
+          "nextNodeIds": ["pass_charmed"]
+        },
+        {
+          "text": "[Intimidation] Vous allez me donner ce laissez-passer. Maintenant.",
+          "conditionKey": "has_intimidation",
+          "consequenceKey": "set_scared_and_give_pass",
+          "nextNodeIds": ["pass_scared"]
+        },
+        {
+          "text": "[Bluff] Inspecteur Moreau, contrôle surprise du commandement.",
+          "conditionKey": "has_bluff",
+          "consequenceKey": "set_convinced_and_give_pass",
+          "nextNodeIds": ["pass_convinced"]
+        },
+        {
+          "text": "J'ai besoin d'accéder à la salle de commandement.",
+          "nextNodeIds": ["no_pass"]
+        }
+      ]
+    },
+    {
+      "id": "pass_charmed",
+      "text": "Je... eh bien, voilà votre laissez-passer. N'en parlez à personne, d'accord ?",
+      "responses": [{ "text": "Bien sûr. Merci.", "nextNodeIds": [] }]
+    },
+    {
+      "id": "pass_scared",
+      "text": "O-oui ! Tenez, voilà ! Je n'ai rien vu, rien entendu !",
+      "responses": [{ "text": "Bien.", "nextNodeIds": [] }]
+    },
+    {
+      "id": "pass_convinced",
+      "text": "Bien sûr, inspecteur. Voici votre accréditation. Tout est en ordre.",
+      "responses": [{ "text": "Parfait. Continuez.", "nextNodeIds": [] }]
+    },
+    {
+      "id": "no_pass",
+      "text": "Sans justification valable, je ne peux pas vous laisser passer. Règlement.",
+      "responses": [{ "text": "Je comprends.", "nextNodeIds": [] }]
+    }
+  ]
+}

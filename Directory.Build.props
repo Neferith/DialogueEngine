@@ -1,0 +1,21 @@
+<Project>
+  <PropertyGroup>
+    <!-- Version unique pour toute la solution. Bumper ici avant de tagger. -->
+    <Version>0.1.0</Version>
+    <AssemblyVersion>$(Version)</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+
+    <!-- Métadonnées communes -->
+    <Authors>Vivien</Authors>
+    <Company>Vivien</Company>
+    <Copyright>Copyright © Vivien 2025</Copyright>
+    <RepositoryUrl>https://github.com/TON_USERNAME/DialogueEngine</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>dialogue;rpg;game;csharp</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Seuls Core et Serialization sont packagés -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>

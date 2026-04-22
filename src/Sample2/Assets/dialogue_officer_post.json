@@ -1,0 +1,30 @@
+{
+  "id": "dialogue_officer_post",
+  "nodes": [
+    {
+      "id": "post_charmed",
+      "conditionKey": "officer_charmed",
+      "text": "Ah... vous êtes encore là. Je dois admettre que vous m'avez... impressionné.",
+      "responses": [
+        { "text": "C'est un don naturel.", "nextNodeIds": [] },
+        { "text": "Ne vous en faites pas.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "post_scared",
+      "conditionKey": "officer_scared",
+      "text": "S'il vous plaît... ne me faites pas d'ennuis. J'ai fait ce que vous vouliez.",
+      "responses": [
+        { "text": "Personne ne saura rien.", "nextNodeIds": [] },
+        { "text": "Vous avez bien fait.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "post_convinced",
+      "text": "Inspecteur Moreau, si vous avez besoin d'autre chose, n'hésitez pas.",
+      "responses": [
+        { "text": "Je n'y manquerai pas.", "nextNodeIds": [] }
+      ]
+    }
+  ]
+}

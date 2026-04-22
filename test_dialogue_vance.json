@@ -1,0 +1,83 @@
+{
+  "id": "dialogue_garde_vance",
+  "nodes": [
+    {
+      "id": "intro",
+      "text": "Halte. Cette zone est réservée au personnel autorisé, {player.name}.",
+      "cancelConsequenceKey": "vance_agace",
+      "responses": [
+        {
+          "text": "J'ai un laissez-passer du commandant.",
+          "conditionKey": "player_has_pass",
+          "consequenceKey": "consume_pass",
+          "nextNodeIds": ["acces_ok"]
+        },
+        {
+          "text": "Je viens pour la mission Delta.",
+          "nextNodeIds": ["mission_delta", "intro_suspicieux"]
+        },
+        {
+          "text": "Rien, je me suis trompé de couloir.",
+          "nextNodeIds": ["au_revoir"]
+        }
+      ]
+    },
+    {
+      "id": "intro_suspicieux",
+      "conditionKey": "guard_suspicious",
+      "text": "Mission Delta ? Je n'ai rien dans mes ordres. Qui vous a envoyé ?",
+      "responses": [
+        {
+          "text": "Le colonel Harrak.",
+          "nextNodeIds": ["acces_ok"]
+        },
+        {
+          "text": "Je ne peux pas le dire.",
+          "nextNodeIds": ["refus"]
+        }
+      ]
+    },
+    {
+      "id": "acces_ok",
+      "text": "Très bien. Vous pouvez passer. Ne traînez pas.",
+      "consequenceKey": "unlock_door",
+      "responses": [
+        {
+          "text": "Merci.",
+          "nextNodeIds": []
+        }
+      ]
+    },
+    {
+      "id": "mission_delta",
+      "text": "Mission Delta, bien sûr. Allez-y, on vous attendait.",
+      "consequenceKey": "unlock_door",
+      "responses": [
+        {
+          "text": "Merci.",
+          "nextNodeIds": []
+        }
+      ]
+    },
+    {
+      "id": "refus",
+      "text": "Dans ce cas, vous repasserez avec une autorisation en bonne et due forme.",
+      "responses": [
+        {
+          "text": "Compris.",
+          "nextNodeIds": []
+        }
+      ]
+    },
+    {
+      "id": "au_revoir",
+      "text": "Bien. Bonne journée.",
+      "responses": [
+        {
+          "text": "Bonne journée.",
+          "nextNodeIds": []
+        }
+      ]
+    }
+  ]
+}

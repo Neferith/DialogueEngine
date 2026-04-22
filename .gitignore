@@ -1,0 +1,81 @@
+# ── Build ─────────────────────────────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+out/
+publish/
+artifacts/
+
+# ── NuGet ─────────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+nuget.config.user
+project.lock.json
+project.fragment.lock.json
+
+# ── Visual Studio ─────────────────────────────────────────────────────────────
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docview
+*.sln.iml
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+*.psess
+*.vsp
+*.vspx
+
+# ── JetBrains Rider ───────────────────────────────────────────────────────────
+_ReSharper*/
+*.DotSettings.user
+.idea/
+
+# ── .NET ──────────────────────────────────────────────────────────────────────
+TestResults/
+*.coverage
+*.coveragexml
+coverage*/
+
+# ── Avalonia ──────────────────────────────────────────────────────────────────
+*.axaml.cs.g
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ── Logs / temp ───────────────────────────────────────────────────────────────
+*.log
+*.tmp
+*.temp
+crash.txt
+
+# ── Secrets (ne jamais committer) ─────────────────────────────────────────────
+*.pfx
+*.p12
+*.key
+appsettings.*.json
+!appsettings.json
+secrets.json
+.env
+.env.*

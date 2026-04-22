@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Sample1</RootNamespace>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia"               Version="11.1.4" />
+    <PackageReference Include="Avalonia.Desktop"       Version="11.1.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter"   Version="11.1.4" />
+    <PackageReference Include="Avalonia.Diagnostics"   Version="11.1.4" Condition="'$(Configuration)'=='Debug'" />
+    <PackageReference Include="CommunityToolkit.Mvvm"  Version="8.3.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DialogueEngine.Core\DialogueEngine.Core.csproj" />
+    <ProjectReference Include="..\DialogueEngine.Serialization\DialogueEngine.Serialization.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+</Project>

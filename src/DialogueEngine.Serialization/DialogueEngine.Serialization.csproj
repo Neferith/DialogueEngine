@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>DialogueEngine.Serialization</RootNamespace>
+
+    <!-- NuGet packaging -->
+    <IsPackable>true</IsPackable>
+    <PackageId>DialogueEngine.Serialization</PackageId>
+    <Description>Sérialisation JSON pour DialogueEngine.Core — lecture/écriture des fichiers de dialogue.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DialogueEngine.Core\DialogueEngine.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Sample1.ViewModels"
+             x:Class="Sample1.Views.DialogueView"
+             x:DataType="vm:DialogueViewModel">
+
+  <Grid RowDefinitions="*,Auto">
+
+    <!-- Zone scène (haut) -->
+    <Panel Grid.Row="0" Background="#050A14">
+      <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+        <!-- Silhouette garde -->
+        <Border Width="64" Height="80" Background="#1A2F44"
+                BorderBrush="#4080FF" BorderThickness="1">
+          <TextBlock Text="⬛" FontSize="40"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Foreground="#2040AA" />
+        </Border>
+        <TextBlock Text="GARDE VANCE"
+                   FontFamily="Consolas,Courier New,monospace"
+                   FontSize="11" Foreground="#6888AA"
+                   HorizontalAlignment="Center" />
+      </StackPanel>
+    </Panel>
+
+    <!-- Zone dialogue (bas) -->
+    <StackPanel Grid.Row="1" Spacing="4" Margin="16,0,16,16">
+
+      <!-- Boîte texte NPC -->
+      <Border Classes="NesBox">
+        <StackPanel Spacing="6">
+
+          <!-- Nom du NPC -->
+          <TextBlock Text="{Binding NpcName}" Classes="NpcName" />
+
+          <!-- Texte avec typewriter -->
+          <TextBlock Text="{Binding DisplayedText}"
+                     Classes="DialogueText" />
+
+          <!-- Indicateur de continuation -->
+          <TextBlock Text="▼"
+                     HorizontalAlignment="Right"
+                     FontFamily="Consolas,Courier New,monospace"
+                     FontSize="14"
+                     IsVisible="{Binding ShowContinueIndicator}"
+                     Foreground="{StaticResource NesGoldBrush}" />
+
+        </StackPanel>
+      </Border>
+
+      <!-- Boîte réponses -->
+      <Border Classes="NesBox" IsVisible="{Binding IsTypingDone}">
+        <ItemsControl ItemsSource="{Binding Responses}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:DialogueResponseItem">
+              <Button Background="Transparent" BorderThickness="0"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Left"
+                      Padding="0,3"
+                      Command="{Binding $parent[UserControl].((vm:DialogueViewModel)DataContext).SelectResponseCommand}"
+                      CommandParameter="{Binding Index}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="►"
+                             Foreground="{StaticResource NesGoldBrush}"
+                             FontFamily="Consolas,Courier New,monospace"
+                             FontSize="13" />
+                  <TextBlock Text="{Binding Text}"
+                             FontFamily="Consolas,Courier New,monospace"
+                             FontSize="13"
+                             Foreground="{StaticResource NesTextBrush}"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+
+    </StackPanel>
+  </Grid>
+</UserControl>

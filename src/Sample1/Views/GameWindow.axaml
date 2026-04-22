@@ -1,0 +1,42 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Sample1.ViewModels"
+        xmlns:views="using:Sample1.Views"
+        x:Class="Sample1.Views.GameWindow"
+        x:DataType="vm:GameViewModel"
+        Title="Sample1 — Dialogue Engine"
+        Width="640" Height="480"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+
+  <Panel>
+
+    <!-- Phase Setup -->
+    <ContentControl IsVisible="{Binding IsSetup}" Content="{Binding CurrentPhase}">
+      <ContentControl.DataTemplates>
+        <DataTemplate x:DataType="vm:SetupViewModel">
+          <views:SetupView />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
+    <!-- Phase Dialogue -->
+    <ContentControl IsVisible="{Binding IsDialogue}" Content="{Binding CurrentPhase}">
+      <ContentControl.DataTemplates>
+        <DataTemplate x:DataType="vm:DialogueViewModel">
+          <views:DialogueView />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
+    <!-- Phase Outcome -->
+    <ContentControl IsVisible="{Binding IsOutcome}" Content="{Binding CurrentPhase}">
+      <ContentControl.DataTemplates>
+        <DataTemplate x:DataType="vm:OutcomeViewModel">
+          <views:OutcomeView />
+        </DataTemplate>
+      </ContentControl.DataTemplates>
+    </ContentControl>
+
+  </Panel>
+</Window>

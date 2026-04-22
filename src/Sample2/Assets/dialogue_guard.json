@@ -1,0 +1,17 @@
+{
+  "id": "dialogue_guard",
+  "nodes": [
+    {
+      "id": "guard_accepts",
+      "conditionKey": "has_pass",
+      "text": "Laissez-passer valide. Vous pouvez passer. Bonne journée.",
+      "consequenceKey": "open_door",
+      "responses": [{ "text": "Merci.", "nextNodeIds": [] }]
+    },
+    {
+      "id": "guard_refuses",
+      "text": "Zone sécurisée. Laissez-passer obligatoire. Circulez.",
+      "responses": [{ "text": "Je reviendrai.", "nextNodeIds": [] }]
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Sample1.ViewModels"
+             x:Class="Sample1.Views.SetupView"
+             x:DataType="vm:SetupViewModel">
+
+  <Grid RowDefinitions="*,Auto,*">
+    <StackPanel Grid.Row="1" Spacing="0" HorizontalAlignment="Center" MaxWidth="480">
+
+      <!-- Titre -->
+      <TextBlock Text="═══════════════════════════════════"
+                 Foreground="{StaticResource NesBorderBrush}"
+                 FontFamily="Consolas,Courier New,monospace"
+                 FontSize="13" HorizontalAlignment="Center" />
+      <TextBlock Text="    DIALOGUE ENGINE  —  SAMPLE 1   "
+                 Foreground="{StaticResource NesGoldBrush}"
+                 FontFamily="Consolas,Courier New,monospace"
+                 FontSize="15" FontWeight="Bold"
+                 HorizontalAlignment="Center" Margin="0,4" />
+      <TextBlock Text="═══════════════════════════════════"
+                 Foreground="{StaticResource NesBorderBrush}"
+                 FontFamily="Consolas,Courier New,monospace"
+                 FontSize="13" HorizontalAlignment="Center" />
+
+      <Border Margin="0,24,0,0" Classes="NesBox">
+        <StackPanel Spacing="16">
+
+          <!-- Nom du joueur -->
+          <StackPanel Spacing="6">
+            <TextBlock Text="NOM DU JOUEUR"
+                       Foreground="{StaticResource NesMutedBrush}"
+                       FontFamily="Consolas,Courier New,monospace"
+                       FontSize="11" />
+            <TextBox Text="{Binding PlayerName}"
+                     MaxLength="20"
+                     Classes="NesInput" />
+          </StackPanel>
+
+          <!-- Sélection du rang -->
+          <StackPanel Spacing="6">
+            <TextBlock Text="RANG"
+                       Foreground="{StaticResource NesMutedBrush}"
+                       FontFamily="Consolas,Courier New,monospace"
+                       FontSize="11" />
+
+            <Button Classes="NesBtn" Command="{Binding SelectRankCommand}" CommandParameter="Civil">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="►" IsVisible="{Binding IsCivil}"
+                           Foreground="{StaticResource NesGoldBrush}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text=" " IsVisible="{Binding !IsCivil}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text="CIVIL" FontFamily="Consolas,Courier New,monospace" FontSize="14"
+                           Foreground="{StaticResource NesTextBrush}" />
+                <TextBlock Text="  ─  accès limité, peu suspect"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="11"
+                           Foreground="{StaticResource NesMutedBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="NesBtn" Command="{Binding SelectRankCommand}" CommandParameter="Soldat">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="►" IsVisible="{Binding IsSoldat}"
+                           Foreground="{StaticResource NesGoldBrush}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text=" " IsVisible="{Binding !IsSoldat}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text="SOLDAT" FontFamily="Consolas,Courier New,monospace" FontSize="14"
+                           Foreground="{StaticResource NesTextBrush}" />
+                <TextBlock Text="  ─  peut négocier avec papiers"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="11"
+                           Foreground="{StaticResource NesMutedBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="NesBtn" Command="{Binding SelectRankCommand}" CommandParameter="Officier">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="►" IsVisible="{Binding IsOfficier}"
+                           Foreground="{StaticResource NesGoldBrush}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text=" " IsVisible="{Binding !IsOfficier}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text="OFFICIER" FontFamily="Consolas,Courier New,monospace" FontSize="14"
+                           Foreground="{StaticResource NesGreenBrush}" />
+                <TextBlock Text="  ─  accès garanti"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="11"
+                           Foreground="{StaticResource NesMutedBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="NesBtn" Command="{Binding SelectRankCommand}" CommandParameter="Déserteur">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="►" IsVisible="{Binding IsDéserteur}"
+                           Foreground="{StaticResource NesGoldBrush}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text=" " IsVisible="{Binding !IsDéserteur}"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="14" />
+                <TextBlock Text="DÉSERTEUR" FontFamily="Consolas,Courier New,monospace" FontSize="14"
+                           Foreground="{StaticResource NesRedBrush}" />
+                <TextBlock Text="  ─  dangereux, hostile"
+                           FontFamily="Consolas,Courier New,monospace" FontSize="11"
+                           Foreground="{StaticResource NesMutedBrush}"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+          <!-- Bouton démarrer -->
+          <Button Command="{Binding StartCommand}"
+                  HorizontalAlignment="Center"
+                  Classes="NesBtn"
+                  Margin="0,8,0,0">
+            <TextBlock Text="▶  COMMENCER  ◀"
+                       Foreground="{StaticResource NesGoldBrush}"
+                       FontFamily="Consolas,Courier New,monospace"
+                       FontSize="15" FontWeight="Bold" />
+          </Button>
+
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </Grid>
+</UserControl>

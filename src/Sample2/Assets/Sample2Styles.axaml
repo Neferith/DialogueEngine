@@ -1,0 +1,54 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <SolidColorBrush x:Key="NesBg"       Color="#050A14" />
+    <SolidColorBrush x:Key="NesBox"      Color="#0D1F3C" />
+    <SolidColorBrush x:Key="NesBorder"   Color="#4080FF" />
+    <SolidColorBrush x:Key="NesText"     Color="#E8E8E8" />
+    <SolidColorBrush x:Key="NesGold"     Color="#FFD700" />
+    <SolidColorBrush x:Key="NesMuted"    Color="#6888AA" />
+    <SolidColorBrush x:Key="NesGreen"    Color="#44FF88" />
+    <SolidColorBrush x:Key="NesRed"      Color="#FF4444" />
+    <SolidColorBrush x:Key="NesFloor"    Color="#0A1428" />
+    <SolidColorBrush x:Key="NesWall"     Color="#1A3060" />
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{StaticResource NesBg}" />
+    <Setter Property="FontFamily" Value="Consolas,Courier New,monospace" />
+  </Style>
+  <Style Selector="TextBlock">
+    <Setter Property="Foreground" Value="{StaticResource NesText}" />
+    <Setter Property="FontFamily" Value="Consolas,Courier New,monospace" />
+  </Style>
+  <Style Selector="Border.NesBox">
+    <Setter Property="Background"      Value="{StaticResource NesBox}" />
+    <Setter Property="BorderBrush"     Value="{StaticResource NesBorder}" />
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="CornerRadius"    Value="2" />
+    <Setter Property="Padding"         Value="12,8" />
+  </Style>
+  <Style Selector="Button.NesBtn">
+    <Setter Property="Background"      Value="Transparent" />
+    <Setter Property="BorderBrush"     Value="{StaticResource NesBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground"      Value="{StaticResource NesGold}" />
+    <Setter Property="FontFamily"      Value="Consolas,Courier New,monospace" />
+    <Setter Property="FontSize"        Value="14" />
+    <Setter Property="Padding"         Value="16,8" />
+    <Setter Property="Cursor"          Value="Hand" />
+  </Style>
+  <Style Selector="Button.NesBtn:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#1A3060" />
+  </Style>
+  <Style Selector="TextBox.NesInput">
+    <Setter Property="Background"      Value="#0D1F3C" />
+    <Setter Property="BorderBrush"     Value="{StaticResource NesBorder}" />
+    <Setter Property="Foreground"      Value="{StaticResource NesGold}" />
+    <Setter Property="CaretBrush"      Value="{StaticResource NesGold}" />
+    <Setter Property="FontFamily"      Value="Consolas,Courier New,monospace" />
+    <Setter Property="FontSize"        Value="14" />
+    <Setter Property="Padding"         Value="8,6" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+</Styles>

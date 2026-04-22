@@ -1,0 +1,108 @@
+{
+  "id": "dialogue_garde_vance",
+  "nodes": [
+    {
+      "id": "intro_officier",
+      "conditionKey": "rank_officer",
+      "text": "Mon commandant ! Je ne vous attendais pas dans ce secteur. Vous pouvez évidemment passer.",
+      "consequenceKey": "unlock_door",
+      "responses": [
+        { "text": "Merci, soldat. Continuez.", "nextNodeIds": [] },
+        { "text": "Tout est calme par ici ?", "nextNodeIds": ["info_garde_officier"] }
+      ]
+    },
+    {
+      "id": "intro_deserteur",
+      "conditionKey": "rank_deserter",
+      "text": "Vous... je vous reconnais. Les ordres sont clairs pour votre cas. N'approchez pas.",
+      "cancelConsequenceKey": "vance_alarme",
+      "responses": [
+        { "text": "Je peux expliquer, je vous en supplie.", "nextNodeIds": ["deserteur_explication"] },
+        { "text": "[Tenter de fuir]", "consequenceKey": "player_flee", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "intro_soldat",
+      "conditionKey": "rank_soldier",
+      "text": "Soldat. Zone réservée aux officiers et personnel accrédité. Vos papiers ?",
+      "responses": [
+        { "text": "Je les ai laissés au baraquement.", "nextNodeIds": ["soldat_sans_papiers"] },
+        { "text": "Je suis en mission spéciale.", "nextNodeIds": ["soldat_mission"] }
+      ]
+    },
+    {
+      "id": "intro_civil",
+      "text": "Halte, {player.name}. Cette zone est interdite aux civils. Demi-tour.",
+      "cancelConsequenceKey": "vance_agace",
+      "responses": [
+        { "text": "Je cherche juste la sortie.", "nextNodeIds": ["civil_perdu"] },
+        { "text": "J'ai un message urgent pour le commandant.", "nextNodeIds": ["civil_message"] },
+        { "text": "Très bien, je m'en vais.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "info_garde_officier",
+      "text": "Très calme, mon commandant. Aucun incident depuis hier soir.",
+      "responses": [
+        { "text": "Bien. Restez vigilant.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "deserteur_explication",
+      "text": "Les explications, c'est pour le tribunal militaire. Demi-tour, ou j'appelle du renfort.",
+      "responses": [
+        { "text": "Compris. Je pars.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "soldat_sans_papiers",
+      "text": "Sans papiers, je ne peux pas vous laisser passer. Règlement.",
+      "responses": [
+        { "text": "Compris.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "soldat_mission",
+      "text": "Mission spéciale ? Avec une autorisation signée ?",
+      "responses": [
+        {
+          "text": "Oui, la voici.",
+          "conditionKey": "player_has_pass",
+          "consequenceKey": "consume_pass",
+          "nextNodeIds": ["acces_ok"]
+        },
+        { "text": "Elle est... confidentielle.", "nextNodeIds": ["refus"] }
+      ]
+    },
+    {
+      "id": "civil_perdu",
+      "text": "La sortie est dans l'autre couloir, à gauche. Ne revenez pas par ici.",
+      "responses": [
+        { "text": "Merci.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "civil_message",
+      "text": "Un message ? Donnez-le moi, je le transmettrai.",
+      "responses": [
+        { "text": "C'est personnel, il faut que je le remette moi-même.", "nextNodeIds": ["refus"] },
+        { "text": "D'accord, tenez.", "consequenceKey": "message_delivered", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "acces_ok",
+      "text": "Tout est en ordre. Vous pouvez passer, soldat.",
+      "consequenceKey": "unlock_door",
+      "responses": [
+        { "text": "Merci.", "nextNodeIds": [] }
+      ]
+    },
+    {
+      "id": "refus",
+      "text": "Dans ce cas, je ne peux pas vous laisser passer. Bonne journée.",
+      "responses": [
+        { "text": "Bien.", "nextNodeIds": [] }
+      ]
+    }
+  ]
+}

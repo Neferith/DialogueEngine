@@ -1,0 +1,138 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Sample2.ViewModels"
+             xmlns:views="using:Sample2.Views"
+             x:Class="Sample2.Views.MapView"
+             x:DataType="vm:MapViewModel"
+             Width="640" Height="480">
+
+  <Grid RowDefinitions="32,*">
+
+    <!-- Status bar -->
+    <Border Grid.Row="0" Background="#0D1F3C"
+            BorderThickness="0,0,0,1" BorderBrush="{StaticResource NesBorder}">
+      <StackPanel Orientation="Horizontal" Spacing="16" Margin="8,0">
+        <TextBlock Text="MISSION INFILTRATION"
+                   Foreground="{StaticResource NesGold}" FontSize="12" FontWeight="Bold"
+                   VerticalAlignment="Center" />
+        <TextBlock Text="{Binding StatusText}"
+                   Foreground="{StaticResource NesText}" FontSize="12"
+                   VerticalAlignment="Center" />
+        <TextBlock Text="  E = interagir  |  ZQSD / flèches = déplacer"
+                   Foreground="{StaticResource NesMuted}" FontSize="11"
+                   VerticalAlignment="Center" />
+      </StackPanel>
+    </Border>
+
+    <!-- Map + dialogue overlay -->
+    <Panel Grid.Row="1">
+
+      <!-- Map canvas -->
+      <Canvas Width="640" Height="448" Background="{StaticResource NesBg}">
+
+        <!-- Plancher zone gauche -->
+        <Border Canvas.Left="30" Canvas.Top="20" Width="360" Height="310"
+                Background="#0A1830" BorderBrush="#1A3060" BorderThickness="2" />
+
+        <!-- Plancher zone droite -->
+        <Border Canvas.Left="390" Canvas.Top="20" Width="220" Height="310"
+                Background="#0A1428" BorderBrush="#1A3060" BorderThickness="2" />
+
+        <!-- Mur de partition haut -->
+        <Border Canvas.Left="380" Canvas.Top="20" Width="12" Height="110"
+                Background="#2040A0" />
+
+        <!-- Mur de partition bas -->
+        <Border Canvas.Left="380" Canvas.Top="200" Width="12" Height="130"
+                Background="#2040A0" />
+
+        <!-- Porte (ouverture) -->
+        <Border Canvas.Left="380" Canvas.Top="130" Width="12" Height="70"
+                Background="#0A1428" />
+        <TextBlock Canvas.Left="347" Canvas.Top="158"
+                   Text="►" FontSize="14"
+                   Foreground="{StaticResource NesGold}" />
+
+        <!-- Porte extérieure droite -->
+        <Border Canvas.Left="598" Canvas.Top="110" Width="10" Height="130"
+                Background="{StaticResource NesBorder}" />
+
+        <!-- Porte ouverte indicator -->
+        <Border Canvas.Left="598" Canvas.Top="110" Width="10" Height="130"
+                Background="{StaticResource NesGreen}"
+                IsVisible="{Binding DoorOpen}" />
+
+        <!-- Labels de zones -->
+        <TextBlock Canvas.Left="50" Canvas.Top="25"
+                   Text="ZONE OFFICIER" Foreground="{StaticResource NesMuted}" FontSize="10" />
+        <TextBlock Canvas.Left="420" Canvas.Top="25"
+                   Text="ZONE SÉCURISÉE" Foreground="{StaticResource NesMuted}" FontSize="10" />
+
+        <!-- Officier sprite -->
+        <Border Canvas.Left="{Binding OfficerLeft}" Canvas.Top="{Binding OfficerTop}"
+                Width="28" Height="32"
+                Background="#2060FF" BorderBrush="#6090FF" BorderThickness="1" CornerRadius="2">
+          <TextBlock Text="LT" FontSize="9" FontWeight="Bold"
+                     Foreground="White" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" />
+        </Border>
+        <TextBlock Canvas.Left="196" Canvas.Top="210"
+                   Text="LIEUTENANT MARC"
+                   Foreground="{StaticResource NesGold}" FontSize="10" />
+
+        <!-- Hint officier -->
+        <Border Canvas.Left="196" Canvas.Top="148"
+                Background="#1A3060" BorderBrush="{StaticResource NesGold}"
+                BorderThickness="1" Padding="4,2" CornerRadius="2"
+                IsVisible="{Binding CanInteractOfficer}">
+          <TextBlock Text="E : Parler" Foreground="{StaticResource NesGold}" FontSize="10" />
+        </Border>
+
+        <!-- Garde sprite -->
+        <Border Canvas.Left="{Binding GuardLeft}" Canvas.Top="{Binding GuardTop}"
+                Width="28" Height="32"
+                Background="#802020" BorderBrush="#C04040" BorderThickness="1" CornerRadius="2">
+          <TextBlock Text="GD" FontSize="9" FontWeight="Bold"
+                     Foreground="White" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" />
+        </Border>
+        <TextBlock Canvas.Left="462" Canvas.Top="210"
+                   Text="GARDE" Foreground="{StaticResource NesRed}" FontSize="10" />
+
+        <!-- Hint garde -->
+        <Border Canvas.Left="462" Canvas.Top="148"
+                Background="#1A3060" BorderBrush="{StaticResource NesGold}"
+                BorderThickness="1" Padding="4,2" CornerRadius="2"
+                IsVisible="{Binding CanInteractGuard}">
+          <TextBlock Text="E : Parler" Foreground="{StaticResource NesGold}" FontSize="10" />
+        </Border>
+
+        <!-- Joueur sprite -->
+        <Border Canvas.Left="{Binding PlayerX}" Canvas.Top="{Binding PlayerY}"
+                Width="28" Height="32"
+                Background="#20A040" BorderBrush="#40FF80" BorderThickness="1" CornerRadius="2">
+          <TextBlock Text="▲" FontSize="12"
+                     Foreground="White" HorizontalAlignment="Center"
+                     VerticalAlignment="Center" />
+        </Border>
+
+      </Canvas>
+
+      <!-- Overlay dialogue (panel bas) -->
+      <Border VerticalAlignment="Bottom"
+              IsVisible="{Binding IsDialogueActive}"
+              Background="#050A14CC"
+              BorderBrush="{StaticResource NesBorder}"
+              BorderThickness="0,2,0,0">
+        <ContentControl Content="{Binding ActiveDialogue}">
+          <ContentControl.DataTemplates>
+            <DataTemplate x:DataType="vm:DialogueViewModel">
+              <views:DialogueView />
+            </DataTemplate>
+          </ContentControl.DataTemplates>
+        </ContentControl>
+      </Border>
+
+    </Panel>
+  </Grid>
+</UserControl>

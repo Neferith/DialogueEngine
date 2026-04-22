@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Sample2.ViewModels"
+             x:Class="Sample2.Views.SetupView"
+             x:DataType="vm:SetupViewModel">
+
+  <Grid RowDefinitions="*,Auto,*">
+    <StackPanel Grid.Row="1" Spacing="0" HorizontalAlignment="Center" MaxWidth="500">
+
+      <TextBlock Text="══════════════════════════════════════"
+                 Foreground="{StaticResource NesBorder}" FontSize="13"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="    MISSION INFILTRATION — SAMPLE 2   "
+                 Foreground="{StaticResource NesGold}" FontSize="15" FontWeight="Bold"
+                 HorizontalAlignment="Center" Margin="0,4" />
+      <TextBlock Text="══════════════════════════════════════"
+                 Foreground="{StaticResource NesBorder}" FontSize="13"
+                 HorizontalAlignment="Center" />
+
+      <Border Classes="NesBox" Margin="0,20,0,0">
+        <StackPanel Spacing="16">
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="IDENTITÉ" Foreground="{StaticResource NesMuted}" FontSize="11" />
+            <TextBox Text="{Binding PlayerName}" MaxLength="20" Classes="NesInput" />
+          </StackPanel>
+
+          <StackPanel Spacing="6">
+            <TextBlock Text="COMPÉTENCE PRINCIPALE" Foreground="{StaticResource NesMuted}" FontSize="11" />
+
+            <Button Classes="NesBtn" Command="{Binding SelectSkillCommand}" CommandParameter="Charme"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="►" IsVisible="{Binding IsCharme}"
+                           Foreground="{StaticResource NesGold}" FontSize="14" />
+                <TextBlock Text=" " IsVisible="{Binding !IsCharme}" FontSize="14" />
+                <TextBlock Text="CHARME" Foreground="{StaticResource NesGreen}" FontSize="14" />
+                <TextBlock Text=" — séduire, désarmer, obtenir par la douceur"
+                           Foreground="{StaticResource NesMuted}" FontSize="11"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="NesBtn" Command="{Binding SelectSkillCommand}" CommandParameter="Intimidation"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="►" IsVisible="{Binding IsIntimidation}"
+                           Foreground="{StaticResource NesGold}" FontSize="14" />
+                <TextBlock Text=" " IsVisible="{Binding !IsIntimidation}" FontSize="14" />
+                <TextBlock Text="INTIMIDATION" Foreground="{StaticResource NesRed}" FontSize="14" />
+                <TextBlock Text=" — menacer, forcer, dominer"
+                           Foreground="{StaticResource NesMuted}" FontSize="11"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+
+            <Button Classes="NesBtn" Command="{Binding SelectSkillCommand}" CommandParameter="Bluff"
+                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="►" IsVisible="{Binding IsBluff}"
+                           Foreground="{StaticResource NesGold}" FontSize="14" />
+                <TextBlock Text=" " IsVisible="{Binding !IsBluff}" FontSize="14" />
+                <TextBlock Text="BLUFF" Foreground="{StaticResource NesGold}" FontSize="14" />
+                <TextBlock Text=" — mentir, usurper, convaincre par ruse"
+                           Foreground="{StaticResource NesMuted}" FontSize="11"
+                           VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+          <StackPanel Spacing="4">
+            <TextBlock Text="CONTRÔLES  :  ZQSD / flèches = déplacer  |  E / Entrée = interagir"
+                       Foreground="{StaticResource NesMuted}" FontSize="10"
+                       HorizontalAlignment="Center" />
+          </StackPanel>
+
+          <Button Command="{Binding StartCommand}" HorizontalAlignment="Center"
+                  Classes="NesBtn" Margin="0,4,0,0">
+            <TextBlock Text="▶  COMMENCER LA MISSION  ◀"
+                       Foreground="{StaticResource NesGold}"
+                       FontSize="14" FontWeight="Bold" />
+          </Button>
+
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </Grid>
+</UserControl>

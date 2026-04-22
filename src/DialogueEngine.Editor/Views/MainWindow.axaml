@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DialogueEngine.Editor.ViewModels"
+        xmlns:views="using:DialogueEngine.Editor.Views"
+        x:Class="DialogueEngine.Editor.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Dialogue Editor"
+        Width="1200" Height="780" MinWidth="800" MinHeight="500">
+
+  <DockPanel>
+
+    <!-- Toolbar -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="8,6">
+      <Button Content="Nouveau"     Command="{Binding NewFileCommand}" />
+      <Button Content="Ouvrir…"     Command="{Binding OpenFileCommand}" />
+      <Button Content="Enregistrer" Command="{Binding SaveFileCommand}" />
+      <Button Content="Enr. sous…"  Command="{Binding SaveAsCommand}" />
+      <Border Width="1" Margin="4,2" Background="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+      <Button Content="Valider"     Command="{Binding ValidateCommand}" />
+    </StackPanel>
+
+    <!-- Barre de statut -->
+    <Border DockPanel.Dock="Bottom" Padding="8,4"
+            BorderThickness="0,1,0,0"
+            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+      <TextBlock Text="{Binding StatusMessage}" FontSize="12" />
+    </Border>
+
+    <!-- Erreurs de validation -->
+    <Border DockPanel.Dock="Bottom"
+            IsVisible="{Binding HasValidationErrors}"
+            Background="{DynamicResource SystemFillColorCriticalBackgroundBrush}"
+            MaxHeight="100" Padding="8,6">
+      <ScrollViewer>
+        <ItemsControl ItemsSource="{Binding ValidationErrors}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding}" FontSize="12" Margin="0,1" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+    </Border>
+
+    <!-- Corps -->
+    <Panel>
+
+      <TextBlock IsVisible="{Binding !HasFile}"
+                 Text="Créez ou ouvrez un fichier de dialogue."
+                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                 Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}" />
+
+      <Grid IsVisible="{Binding HasFile}" ColumnDefinitions="260,4,*">
+
+        <ContentControl Grid.Column="0" Content="{Binding NodeList}">
+          <ContentControl.DataTemplates>
+            <DataTemplate x:DataType="vm:NodeListViewModel">
+              <views:NodeListView />
+            </DataTemplate>
+          </ContentControl.DataTemplates>
+        </ContentControl>
+
+        <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+
+        <ContentControl Grid.Column="2" Content="{Binding NodeList.SelectedNode}">
+          <ContentControl.DataTemplates>
+            <DataTemplate x:DataType="vm:NodeEditorViewModel">
+              <views:NodeEditorView />
+            </DataTemplate>
+          </ContentControl.DataTemplates>
+        </ContentControl>
+
+      </Grid>
+    </Panel>
+
+  </DockPanel>
+</Window>

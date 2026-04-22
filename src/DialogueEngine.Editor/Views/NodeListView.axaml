@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:DialogueEngine.Editor.ViewModels"
+             x:Class="DialogueEngine.Editor.Views.NodeListView"
+             x:DataType="vm:NodeListViewModel">
+
+  <DockPanel>
+
+    <!-- ID du dialogue -->
+    <StackPanel DockPanel.Dock="Top" Margin="8,8,8,6" Spacing="4">
+      <TextBlock Text="ID du dialogue" FontSize="12" FontWeight="SemiBold" />
+      <TextBox Text="{Binding DialogueId}" Watermark="mon_dialogue" />
+    </StackPanel>
+
+    <Border DockPanel.Dock="Top" Height="1"
+            Background="{DynamicResource SystemControlForegroundBaseLowBrush}" />
+
+    <!-- Barre d'outils nœuds -->
+    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"
+                Spacing="4" Margin="8,6,8,4">
+      <TextBlock Text="Nœuds" FontSize="12" FontWeight="SemiBold"
+                 VerticalAlignment="Center" />
+      <Button Content="+" Command="{Binding AddNodeCommand}" Padding="8,2" />
+    </StackPanel>
+
+    <!-- Liste des nœuds -->
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Nodes}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:NodeEditorViewModel">
+            <Grid ColumnDefinitions="*,Auto" Margin="4,1">
+
+              <Button Grid.Column="0"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Left"
+                      Background="Transparent" BorderThickness="0" Padding="8,6"
+                      Command="{Binding $parent[UserControl].((vm:NodeListViewModel)DataContext).SelectNodeCommand}"
+                      CommandParameter="{Binding}">
+                <TextBlock Text="{Binding TreeLabel}" FontSize="13" />
+              </Button>
+
+              <StackPanel Grid.Column="1" Orientation="Horizontal"
+                          Spacing="2" VerticalAlignment="Center" Margin="0,0,4,0">
+                <Button Content="▲" FontSize="10" Padding="3,2"
+                        Command="{Binding $parent[UserControl].((vm:NodeListViewModel)DataContext).MoveNodeUpCommand}"
+                        CommandParameter="{Binding}" />
+                <Button Content="▼" FontSize="10" Padding="3,2"
+                        Command="{Binding $parent[UserControl].((vm:NodeListViewModel)DataContext).MoveNodeDownCommand}"
+                        CommandParameter="{Binding}" />
+                <Button Content="⧉" FontSize="10" Padding="3,2"
+                        Command="{Binding $parent[UserControl].((vm:NodeListViewModel)DataContext).DuplicateNodeCommand}"
+                        CommandParameter="{Binding}" />
+                <Button Content="✕" FontSize="10" Padding="3,2"
+                        Command="{Binding $parent[UserControl].((vm:NodeListViewModel)DataContext).DeleteNodeCommand}"
+                        CommandParameter="{Binding}" />
+              </StackPanel>
+
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+
+  </DockPanel>
+</UserControl>
