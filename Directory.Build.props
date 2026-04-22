@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <!-- Version unique pour toute la solution. Bumper ici avant de tagger. -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <AssemblyVersion>$(Version)</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
 
