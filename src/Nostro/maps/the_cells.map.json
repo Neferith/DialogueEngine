@@ -1,0 +1,160 @@
+{
+  "id": "the_cells",
+  "mapType": "DUNGEON",
+  "moduleId": "stone_dungeon",
+  "size": {
+    "width": 16,
+    "height": 16
+  },
+  "defaultTileTypeId": "STONE_WALL",
+  "tiles": [
+    {
+      "position": {
+        "x": 3,
+        "y": 10
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 9
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 5,
+        "y": 10
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 10
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 11
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 11
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 10
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 11
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 9
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 5
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 8
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 5,
+        "y": 5
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 6
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 5,
+        "y": 6
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 5
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 6,
+        "y": 7
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 7,
+        "y": 8
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    }
+  ],
+  "entities": [
+    {
+      "id": "PLAYER_SPAWN_7_5",
+      "entityTypeId": "PLAYER_SPAWN",
+      "position": {
+        "x": 7,
+        "y": 5
+      },
+      "orientation": "WEST",
+      "properties": {}
+    }
+  ]
+}
