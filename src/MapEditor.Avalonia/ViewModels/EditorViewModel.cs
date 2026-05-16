@@ -1,0 +1,213 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using MapEditor.Avalonia.DI;
+using MapEditor.Core.Models;
+using MapEditor.Core.Modules;
+using MapEditor.Core.Serialization;
+using System.Collections.ObjectModel;
+using MapEditor.Avalonia;
+
+namespace MapEditor.Avalonia.ViewModels;
+
+public enum EditorTool { PaintTile, PaintEntity, Erase, Select }
+
+public partial class EditorViewModel : ObservableObject
+{
+    private readonly MapSerializer _serializer;
+    private readonly ModuleLoader  _loader;
+    private readonly IDialogService _dialog;
+
+    private string? _currentFilePath;
+
+    [ObservableProperty] private MapGridViewModel?   _mapGrid;
+    [ObservableProperty] private PropertiesViewModel _properties = new();
+    [ObservableProperty] private EditorTool          _activeTool = EditorTool.PaintTile;
+    [ObservableProperty] private ModuleDefinition?   _activeModule;
+    [ObservableProperty] private TileTypeDefinition?   _selectedTileType;
+    [ObservableProperty] private EntityTypeDefinition? _selectedEntityType;
+    [ObservableProperty] private string _statusText = "Crée ou ouvre une map pour commencer.";
+
+    public ObservableCollection<ModuleDefinition>   Modules     { get; } = new();
+    public ObservableCollection<TileTypeDefinition>   TileTypes   { get; } = new();
+    public ObservableCollection<EntityTypeDefinition> EntityTypes { get; } = new();
+
+    // Tool toggle bindings for the toolbar
+    public bool IsPaintTileActive   => ActiveTool == EditorTool.PaintTile;
+    public bool IsPaintEntityActive => ActiveTool == EditorTool.PaintEntity;
+    public bool IsEraseActive       => ActiveTool == EditorTool.Erase;
+    public bool IsSelectActive      => ActiveTool == EditorTool.Select;
+
+    public EditorViewModel(IMapSerializerFactory serFactory,
+                           IModuleLoaderFactory  loaderFactory,
+                           IDialogService        dialog)
+    {
+        _serializer = serFactory.CreateMapSerializer();
+        _loader     = loaderFactory.CreateModuleLoader();
+        _dialog     = dialog;
+
+        LoadModules();
+    }
+
+    // ── Module loading ────────────────────────────────────────────────────────
+
+    private void LoadModules()
+    {
+        var modulesPath = Path.Combine(AppContext.BaseDirectory, "modules");
+        var loaded      = _loader.LoadAll(modulesPath);
+        foreach (var m in loaded) Modules.Add(m);
+
+        ActiveModule = Modules.FirstOrDefault();
+        StatusText   = loaded.Count == 0
+            ? $"Aucun module trouvé dans {modulesPath}"
+            : $"{loaded.Count} module(s) chargé(s).";
+    }
+
+    partial void OnActiveModuleChanged(ModuleDefinition? value)
+    {
+        TileTypes.Clear();
+        EntityTypes.Clear();
+        if (value == null) return;
+        foreach (var t in value.TileTypes)   TileTypes.Add(t);
+        foreach (var e in value.EntityTypes) EntityTypes.Add(e);
+        SelectedTileType   = TileTypes.FirstOrDefault();
+        SelectedEntityType = EntityTypes.FirstOrDefault();
+    }
+
+    partial void OnActiveToolChanged(EditorTool value)
+    {
+        OnPropertyChanged(nameof(IsPaintTileActive));
+        OnPropertyChanged(nameof(IsPaintEntityActive));
+        OnPropertyChanged(nameof(IsEraseActive));
+        OnPropertyChanged(nameof(IsSelectActive));
+    }
+
+    // ── Toolbar commands ──────────────────────────────────────────────────────
+
+    [RelayCommand] void SetTool(string tool) =>
+        ActiveTool = Enum.TryParse<EditorTool>(tool, out var t) ? t : EditorTool.PaintTile;
+
+    // ── File commands ─────────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task NewMap()
+    {
+        if (Modules.Count == 0) { StatusText = "Aucun module disponible."; return; }
+
+        var result = await _dialog.ShowNewMapDialog(Modules);
+        if (result == null) return;
+
+        var module = Modules.First(m => m.Id == result.ModuleId);
+        var mapFile = new MapFile
+        {
+            Id                = result.Id,
+            ModuleId          = result.ModuleId,
+            Size              = new SizeData(result.Width, result.Height),
+            DefaultTileTypeId = result.DefaultTileTypeId
+        };
+
+        _currentFilePath = null;
+        OpenMap(mapFile, module);
+        StatusText = $"Nouvelle map « {result.Id} » ({result.Width}×{result.Height}).";
+    }
+
+    [RelayCommand]
+    private async Task OpenMap()
+    {
+        var path = await _dialog.ShowOpenFileDialog();
+        if (path == null) return;
+
+        var mapFile = _serializer.Load(path);
+        if (mapFile == null) { StatusText = "Erreur : impossible de lire le fichier."; return; }
+
+        var module = Modules.FirstOrDefault(m => m.Id == mapFile.ModuleId);
+        if (module == null) { StatusText = $"Module « {mapFile.ModuleId} » introuvable."; return; }
+
+        _currentFilePath = path;
+        OpenMap(mapFile, module);
+        StatusText = $"Map « {mapFile.Id} » ouverte depuis {Path.GetFileName(path)}.";
+    }
+
+    [RelayCommand(CanExecute = nameof(HasOpenMap))]
+    private async Task SaveMap()
+    {
+        if (_currentFilePath == null) { await SaveMapAs(); return; }
+        _serializer.Save(MapGrid!.MapFile, _currentFilePath);
+        StatusText = $"Sauvegardé : {Path.GetFileName(_currentFilePath)}.";
+    }
+
+    [RelayCommand(CanExecute = nameof(HasOpenMap))]
+    private async Task SaveMapAs()
+    {
+        var path = await _dialog.ShowSaveFileDialog($"{MapGrid!.MapFile.Id}.map.json");
+        if (path == null) return;
+        _currentFilePath = path;
+        _serializer.Save(MapGrid.MapFile, path);
+        StatusText = $"Sauvegardé : {Path.GetFileName(path)}.";
+    }
+
+    private bool HasOpenMap() => MapGrid != null;
+
+    // ── Canvas interaction (called by MapCanvasControl) ───────────────────────
+
+    public void HandleCellInteraction(int x, int y, bool isDrag)
+    {
+        if (MapGrid == null || ActiveModule == null) return;
+
+        switch (ActiveTool)
+        {
+            case EditorTool.PaintTile when SelectedTileType != null:
+                MapGrid.PaintTile(x, y, SelectedTileType);
+                break;
+
+            case EditorTool.PaintEntity when SelectedEntityType != null && !isDrag:
+                MapGrid.PlaceEntity(x, y, SelectedEntityType);
+                break;
+
+            case EditorTool.Erase:
+                MapGrid.EraseAt(x, y);
+                break;
+
+            case EditorTool.Select when !isDrag:
+                SelectCell(x, y);
+                break;
+        }
+
+        StatusText = $"({x}, {y})  outil : {ActiveTool}";
+    }
+
+    public void HandleHover(int? x, int? y)
+    {
+        MapGrid?.SetHover(x, y);
+        if (x.HasValue && y.HasValue)
+            StatusText = $"({x}, {y})";
+    }
+
+    // ── Internals ─────────────────────────────────────────────────────────────
+
+    private void OpenMap(MapFile mapFile, ModuleDefinition module)
+    {
+        MapGrid     = new MapGridViewModel(mapFile, module);
+        ActiveModule = module;
+        Properties.Clear();
+        SaveMapCommand.NotifyCanExecuteChanged();
+        SaveMapAsCommand.NotifyCanExecuteChanged();
+    }
+
+    private void SelectCell(int x, int y)
+    {
+        if (MapGrid == null || ActiveModule == null) return;
+
+        MapGrid.SetSelection(x, y);
+
+        var entity = MapGrid.GetEntityAt(x, y);
+        if (entity != null)
+        {
+            var entityType = ActiveModule.FindEntityType(entity.EntityTypeId);
+            if (entityType != null) { Properties.ShowEntity(x, y, entityType, entity, MapGrid); return; }
+        }
+
+        var tileType = MapGrid.GetTileTypeAt(x, y) ?? MapGrid.DefaultTileType;
+        var tileData = MapGrid.GetTileDataAt(x, y);
+        Properties.ShowTile(x, y, tileType, tileData, MapGrid);
+    }
+}
