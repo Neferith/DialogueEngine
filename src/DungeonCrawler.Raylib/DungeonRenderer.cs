@@ -15,13 +15,12 @@ public readonly record struct DungeonSquare(
 
 public static class DungeonRenderer
 {
-    public const int ScreenWidth  = 800;
-    public const int ViewHeight   = 540;
-    public const int HudHeight    = 100;
-    public const int ScreenHeight = ViewHeight + HudHeight;
+    // ── Résolution interne de la vue 3D ─────────────────────────────────────
+    // Vue carrée : changer ViewSize ici suffit pour tout adapter.
+    public const int ViewSize = 720;
 
-    private const float Cx       = ScreenWidth / 2f;
-    private const float Cy       = ViewHeight  / 2f;
+    private const float Cx    = ViewSize / 2f;   // 360
+    private const float Cy    = ViewSize / 2f;   // 360
     private const float Ratio    = 0.75f;
     private const int   MaxDepth = 5;
 
@@ -44,8 +43,10 @@ public static class DungeonRenderer
     private static Texture2D _texDoor;
     private static bool      _texLoaded;
 
-    public static void LoadTextures(string folder = "Assets")
+    public static void Init(string folder = "Assets")
     {
+        // Textures de sol/mur/plafond/porte
+
         _texWall    = Raylib.LoadTexture(Path.Combine(folder, "cell_wall.png"));
         _texFloor   = Raylib.LoadTexture(Path.Combine(folder, "cell_floor.png"));
         _texCeiling = Raylib.LoadTexture(Path.Combine(folder, "cell_ceiling.png"));
@@ -68,17 +69,29 @@ public static class DungeonRenderer
                 $"floor={_texFloor.Id} ceil={_texCeiling.Id} door={_texDoor.Id}\n" +
                 $"  Looked in: {Path.GetFullPath(folder)}");
         _texLoaded = ok;
+
+        // RenderTextures (720×720)
+        _viewTex = Raylib.LoadRenderTexture(ViewSize, ViewSize);
+        _fromTex = Raylib.LoadRenderTexture(ViewSize, ViewSize);
+        _toTex   = Raylib.LoadRenderTexture(ViewSize, ViewSize);
     }
 
-    public static void UnloadTextures()
+    public static void Unload()
     {
-        if (!_texLoaded) return;
-        Raylib.UnloadTexture(_texWall);
-        Raylib.UnloadTexture(_texFloor);
-        Raylib.UnloadTexture(_texCeiling);
-        Raylib.UnloadTexture(_texDoor);
-        _texLoaded = false;
+        if (_texLoaded)
+        {
+            Raylib.UnloadTexture(_texWall);
+            Raylib.UnloadTexture(_texFloor);
+            Raylib.UnloadTexture(_texCeiling);
+            Raylib.UnloadTexture(_texDoor);
+            _texLoaded = false;
+        }
+        Raylib.UnloadRenderTexture(_viewTex);
+        Raylib.UnloadRenderTexture(_fromTex);
+        Raylib.UnloadRenderTexture(_toTex);
     }
+
+    public static void UnloadTextures() => Unload();
 
     // =========================================================================
     // Quad texturé via rlgl  (équivalent du setPolyToPoly Kotlin)
@@ -105,7 +118,7 @@ public static class DungeonRenderer
             return;
         }
         int   y0   = (int)sq.BottomBack;
-        int   y1   = Math.Min((int)sq.BottomForward, ViewHeight);
+        int   y1   = Math.Min((int)sq.BottomForward, ViewSize);
         float span = sq.BottomForward - sq.BottomBack;
         if (y1 <= y0 || span <= 0) return;
 
@@ -183,7 +196,7 @@ public static class DungeonRenderer
         float xFar  = sq.RightBack;
         float span  = xFar - xNear;
         int x0 = Math.Max(0,           (int)Math.Min(xNear, xFar));
-        int x1 = Math.Min(ScreenWidth, (int)Math.Max(xNear, xFar));
+        int x1 = Math.Min(ViewSize, (int)Math.Max(xNear, xFar));
         if (x1 <= x0 || span == 0f) return;
 
         for (int x = x0; x < x1; x++)
@@ -191,7 +204,7 @@ public static class DungeonRenderer
             float t  = (x - xNear) / span;              // 0=near  1=far
             float yT = sq.TopForward    + t * (sq.TopBack    - sq.TopForward);
             float yB = sq.BottomForward + t * (sq.BottomBack - sq.BottomForward);
-            float cT = Math.Max(0, yT), cB = Math.Min(ViewHeight, yB);
+            float cT = Math.Max(0, yT), cB = Math.Min(ViewSize, yB);
             if (cB <= cT) continue;
             float uvYs = (cT - yT) / (yB - yT);
             float uvYe = (cB - yT) / (yB - yT);
@@ -217,7 +230,7 @@ public static class DungeonRenderer
         float xFar  = sq.LeftBack;
         float span  = xFar - xNear;
         int x0 = Math.Max(0,           (int)Math.Min(xNear, xFar));
-        int x1 = Math.Min(ScreenWidth, (int)Math.Max(xNear, xFar));
+        int x1 = Math.Min(ViewSize, (int)Math.Max(xNear, xFar));
         if (x1 <= x0 || span == 0f) return;
 
         for (int x = x0; x < x1; x++)
@@ -225,7 +238,7 @@ public static class DungeonRenderer
             float t  = (x - xNear) / span;              // 0=near  1=far
             float yT = sq.TopForward    + t * (sq.TopBack    - sq.TopForward);
             float yB = sq.BottomForward + t * (sq.BottomBack - sq.BottomForward);
-            float cT = Math.Max(0, yT), cB = Math.Min(ViewHeight, yB);
+            float cT = Math.Max(0, yT), cB = Math.Min(ViewSize, yB);
             if (cB <= cT) continue;
             float uvYs = (cT - yT) / (yB - yT);
             float uvYe = (cB - yT) / (yB - yT);
@@ -245,26 +258,15 @@ public static class DungeonRenderer
     // Animation — RenderTextures
     // =========================================================================
 
+    private static RenderTexture2D _viewTex;
     private static RenderTexture2D _fromTex;
     private static RenderTexture2D _toTex;
 
-    public static void InitAnimationTextures()
-    {
-        _fromTex = Raylib.LoadRenderTexture(ScreenWidth, ViewHeight);
-        _toTex   = Raylib.LoadRenderTexture(ScreenWidth, ViewHeight);
-    }
-
-    public static void UnloadAnimationTextures()
-    {
-        Raylib.UnloadRenderTexture(_fromTex);
-        Raylib.UnloadRenderTexture(_toTex);
-    }
-
-    /// Capture la vue AVANT le déplacement.
+    /// Capture la vue AVANT le déplacement (pour l'animation).
     public static void CaptureFrom(DungeonView view, DungeonRunner runner)
         => CaptureInto(_fromTex, view, runner);
 
-    /// Capture la vue APRÈS le déplacement.
+    /// Capture la vue APRÈS le déplacement (pour l'animation).
     public static void CaptureTo(DungeonView view, DungeonRunner runner)
         => CaptureInto(_toTex, view, runner);
 
@@ -280,78 +282,105 @@ public static class DungeonRenderer
     // Points d'entrée rendu
     // =========================================================================
 
-    /// Rendu normal (pas d'animation).
-    public static void Render(DungeonView view, DungeonRunner runner, int turnNumber)
+    /// Rend la vue 3D dans la texture interne (_viewTex 720×720).
+    /// Appeler ensuite DrawSceneAt() + DrawHud() dans BeginDrawing/EndDrawing.
+    public static void RenderScene(DungeonView view, DungeonRunner runner)
     {
-        Raylib.BeginDrawing();
+        Raylib.BeginTextureMode(_viewTex);
         Raylib.ClearBackground(new Color(6, 5, 4, 255));
         DrawDungeonView(view, runner);
-        DrawHud(view, turnNumber, runner.Party);
-        Raylib.EndDrawing();
+        Raylib.EndTextureMode();
     }
 
-    /// Rendu animé : blend entre _fromTex et _toTex selon le type et la progression.
-    public static void RenderAnimated(
-        AnimType type, float t,
-        DungeonView view, DungeonRunner runner, int turnNumber)
+    /// Affiche la texture interne dans le rectangle dest (scaling automatique).
+    public static void DrawSceneAt(Rectangle dest)
     {
-        // Smoothstep pour une courbe d'accélération/décélération
-        float s = t * t * (3f - 2f * t);
+        Raylib.DrawTexturePro(_viewTex.Texture,
+            new Rectangle(0, 0, ViewSize, -ViewSize),  // -ViewSize = flip Y du RT
+            dest, Vector2.Zero, 0f, Color.White);
+    }
 
-        Raylib.BeginDrawing();
-        Raylib.ClearBackground(new Color(6, 5, 4, 255));
+    /// Blend animé dessiné directement à l'écran dans le rect dest.
+    /// À appeler entre BeginDrawing / EndDrawing.
+    /// Le scissor empêche le débordement dans les panneaux UI voisins.
+    public static void DrawAnimatedSceneAt(AnimType type, float t, Rectangle dest)
+    {
+        float s = t * t * (3f - 2f * t);   // smoothstep
+
+        // Scissor en coordonnées OpenGL (Y=0 en bas)
+        int sy = Raylib.GetScreenHeight() - (int)(dest.Y + dest.Height);
+        Rlgl.EnableScissorTest();
+        Rlgl.Scissor((int)dest.X, sy, (int)dest.Width, (int)dest.Height);
 
         switch (type)
         {
-            // ── Avancer : from zoome (opaque) + to fade in par-dessus ─────────
+            // ── Avancer : from zoome (opaque), to apparaît en dessous ────────
             case AnimType.Forward:
-                DrawRtScaled(_fromTex, 1f + s * (1f / Ratio - 1f), Color.White);
-                DrawRtScaled(_toTex,   Ratio + s * (1f - Ratio),   Fade(s));
+                DrawRtScaledAt(_fromTex, 1f + s * (1f / Ratio - 1f), Color.White, dest);
+                DrawRtScaledAt(_toTex,   Ratio + s * (1f - Ratio),   Fade(s),     dest);
                 break;
 
-            // ── Reculer : from rétrécit (opaque) + to fade in par-dessus ─────
+            // ── Reculer : from rétrécit (opaque), to fade in ─────────────────
             case AnimType.Backward:
-                DrawRtScaled(_fromTex, 1f - s * (1f - Ratio),              Color.White);
-                DrawRtScaled(_toTex,   1f / Ratio - s * (1f / Ratio - 1f), Fade(s));
+                DrawRtScaledAt(_fromTex, 1f - s * (1f - Ratio),              Color.White, dest);
+                DrawRtScaledAt(_toTex,   1f / Ratio - s * (1f / Ratio - 1f), Fade(s),     dest);
                 break;
 
-            // ── Tourner / Strafer gauche : from glisse à droite, to arrive de gauche
+            // ── Tourner / Strafer gauche ──────────────────────────────────────
             case AnimType.TurnLeft:
             case AnimType.StrafeLeft:
-                DrawRtSlide(_fromTex,  s * ScreenWidth);
-                DrawRtSlide(_toTex,   (s - 1f) * ScreenWidth);
+                DrawRtSlideAt(_fromTex,  s * dest.Width,        dest);
+                DrawRtSlideAt(_toTex,   (s - 1f) * dest.Width,  dest);
                 break;
 
-            // ── Tourner / Strafer droite : from glisse à gauche, to arrive de droite
+            // ── Tourner / Strafer droite ──────────────────────────────────────
             case AnimType.TurnRight:
             case AnimType.StrafeRight:
-                DrawRtSlide(_fromTex, -s * ScreenWidth);
-                DrawRtSlide(_toTex,   (1f - s) * ScreenWidth);
+                DrawRtSlideAt(_fromTex, -s * dest.Width,        dest);
+                DrawRtSlideAt(_toTex,   (1f - s) * dest.Width,  dest);
                 break;
         }
 
-        DrawHud(view, turnNumber, runner.Party);
-        Raylib.EndDrawing();
+        Rlgl.DisableScissorTest();
+    }
+
+    private static void DrawRtScaledAt(RenderTexture2D rt, float scale, Color tint, Rectangle dest)
+    {
+        float w = dest.Width  * scale;
+        float h = dest.Height * scale;
+        Raylib.DrawTexturePro(rt.Texture,
+            new Rectangle(0, 0, ViewSize, -ViewSize),   // -ViewSize = flip Y (RT→screen)
+            new Rectangle(dest.X + (dest.Width  - w) * .5f,
+                          dest.Y + (dest.Height - h) * .5f, w, h),
+            Vector2.Zero, 0f, tint);
+    }
+
+    private static void DrawRtSlideAt(RenderTexture2D rt, float offsetX, Rectangle dest)
+    {
+        Raylib.DrawTexturePro(rt.Texture,
+            new Rectangle(0, 0, ViewSize, -ViewSize),
+            new Rectangle(dest.X + offsetX, dest.Y, dest.Width, dest.Height),
+            Vector2.Zero, 0f, Color.White);
     }
 
     // ── Helpers RenderTexture ─────────────────────────────────────────────────
 
     // Source rect : hauteur négative pour corriger le flip Y du RenderTexture.
-    private static readonly Rectangle RtSrc = new(0, 0, ScreenWidth, -ViewHeight);
+    private static readonly Rectangle RtSrc = new(0, 0, ViewSize, -ViewSize);
 
     private static void DrawRtScaled(RenderTexture2D rt, float scale, Color tint)
     {
-        float w = ScreenWidth * scale;
-        float h = ViewHeight  * scale;
+        float w = ViewSize * scale;
+        float h = ViewSize  * scale;
         Raylib.DrawTexturePro(rt.Texture, RtSrc,
-            new Rectangle((ScreenWidth - w) * .5f, (ViewHeight - h) * .5f, w, h),
+            new Rectangle((ViewSize - w) * .5f, (ViewSize - h) * .5f, w, h),
             Vector2.Zero, 0f, tint);
     }
 
     private static void DrawRtSlide(RenderTexture2D rt, float offsetX)
     {
         Raylib.DrawTexturePro(rt.Texture, RtSrc,
-            new Rectangle(offsetX, 0, ScreenWidth, ViewHeight),
+            new Rectangle(offsetX, 0, ViewSize, ViewSize),
             Vector2.Zero, 0f, Color.White);
     }
 
@@ -372,13 +401,13 @@ public static class DungeonRenderer
                             .GroupBy(ve => (ve.LateralOffset, ve.Distance))
                             .ToDictionary(g => g.Key, g => g.First());
 
-        DrawDepth(new Vector2(ScreenWidth * Ratio, ViewHeight * Ratio),
+        DrawDepth(new Vector2(ViewSize * Ratio, ViewSize * Ratio),
                   MaxDepth - 1, cells, entityMap);
 
-        float fwdW = ScreenWidth / Ratio;
-        float fwdH = ViewHeight  / Ratio;
-        float bkW  = ScreenWidth * Ratio;
-        float bkH  = ViewHeight  * Ratio;
+        float fwdW = ViewSize / Ratio;
+        float fwdH = ViewSize  / Ratio;
+        float bkW  = ViewSize * Ratio;
+        float bkH  = ViewSize  * Ratio;
 
         var playerSq = new DungeonSquare(
             LeftBack:      Cx - bkW  * .5f,
@@ -426,7 +455,7 @@ public static class DungeonRenderer
         for (int i = 1; i <= 4; i++)
         {
             rightSq = Shift(rightSq, +oldW, +newW);
-            if (rightSq.LeftBack > ScreenWidth) break;
+            if (rightSq.LeftBack > ViewSize) break;
 
             var tile = map.GetTile(party.Position + right.ToOffset() * i);
             if (tile == null) break;
@@ -489,7 +518,7 @@ public static class DungeonRenderer
         for (int lat = 1; lat <= 6; lat++)
         {
             rSq = Shift(rSq, +oldW, +newW);
-            if (rSq.LeftBack > ScreenWidth) break;
+            if (rSq.LeftBack > ViewSize) break;
             right.Add((rSq, lat));
         }
 
@@ -594,16 +623,16 @@ public static class DungeonRenderer
     // HUD
     // =========================================================================
 
-    private static void DrawHud(DungeonView view, int turnNumber, Party party)
+    public static void DrawHud(DungeonView view, int turnNumber, Party party, Rectangle rect)
     {
-        int y = ViewHeight;
-        Raylib.DrawRectangle(0, y, ScreenWidth, HudHeight, new Color(10, 8, 6, 255));
-        Raylib.DrawLine(0, y, ScreenWidth, y, new Color(48, 42, 36, 255));
+        int x = (int)rect.X, y = (int)rect.Y, w = (int)rect.Width, h = (int)rect.Height;
+        Raylib.DrawRectangle(x, y, w, h, new Color(10, 8, 6, 255));
+        Raylib.DrawLine(x, y, x + w, y, new Color(48, 42, 36, 255));
 
         Raylib.DrawText(
             $"Turn {turnNumber}   {party.Position}  {party.Facing.ToArrow()}   " +
             string.Join("  ", party.Members),
-            12, y + 12, 16, new Color(172, 167, 157, 255));
+            x + 12, y + 12, 16, new Color(172, 167, 157, 255));
 
         string prompt = view.FacingTarget?.Type switch
         {
@@ -617,12 +646,12 @@ public static class DungeonRenderer
         if (prompt.Length > 0)
         {
             int pw = Raylib.MeasureText(prompt, 18);
-            Raylib.DrawText(prompt, (ScreenWidth - pw) / 2, y + 38, 18, new Color(100, 220, 100, 255));
+            Raylib.DrawText(prompt, x + (w - pw) / 2, y + 38, 18, new Color(100, 220, 100, 255));
         }
 
         const string hint = "W/S Fwd/Back   A/D Turn   Q/E Strafe   F Interact   Esc Quit";
         int hw = Raylib.MeasureText(hint, 12);
-        Raylib.DrawText(hint, ScreenWidth - hw - 8, y + HudHeight - 18, 12, new Color(62, 57, 52, 255));
+        Raylib.DrawText(hint, x + w - hw - 8, y + h - 18, 12, new Color(62, 57, 52, 255));
     }
 
     // =========================================================================

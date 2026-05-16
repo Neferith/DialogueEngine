@@ -1,4 +1,5 @@
 using Raylib_cs;
+using System.Numerics;
 using DungeonCrawler.Core;
 using DungeonCrawler.Core.Characters;
 using DungeonCrawler.Core.Entities;
@@ -39,12 +40,12 @@ var turns  = new TurnManager(runner, entities);
 
 // ── Window ────────────────────────────────────────────────────────────────────
 
-Raylib.InitWindow(DungeonRenderer.ScreenWidth, DungeonRenderer.ScreenHeight, "DungeonCrawler");
+Raylib.SetConfigFlags(ConfigFlags.ResizableWindow);
+Raylib.InitWindow(1100, 760, "DungeonCrawler");
 Raylib.SetTargetFPS(60);
-DungeonRenderer.LoadTextures("Assets");
-DungeonRenderer.InitAnimationTextures();
+DungeonRenderer.Init("Assets");
 
-// ── État animation ────────────────────────────────────────────────────────────
+// ── État ─────────────────────────────────────────────────────────────────────
 
 var  anim        = new AnimationState();
 var  currentView = runner.GetView();
@@ -59,25 +60,75 @@ while (!Raylib.WindowShouldClose())
     if (!anim.IsPlaying)
         HandleInput();
 
-    if (anim.IsPlaying)
-        DungeonRenderer.RenderAnimated(anim.Type, anim.Progress, currentView, runner, turns.TurnNumber);
-    else
+    // ── Rendu 3D dans la texture interne (seulement si pas d'animation) ──────
+    if (!anim.IsPlaying)
     {
         currentView = runner.GetView();
-        DungeonRenderer.Render(currentView, runner, turns.TurnNumber);
+        DungeonRenderer.RenderScene(currentView, runner);
     }
+
+    // ── Affichage à l'écran ───────────────────────────────────────────────────
+    Raylib.BeginDrawing();
+    Raylib.ClearBackground(new Color(18, 16, 14, 255));
+
+    var layout = ComputeLayout(Raylib.GetScreenWidth(), Raylib.GetScreenHeight());
+
+    if (anim.IsPlaying)
+        DungeonRenderer.DrawAnimatedSceneAt(anim.Type, anim.Progress, layout.ViewRect);
+    else
+        DungeonRenderer.DrawSceneAt(layout.ViewRect);
+
+    DrawUiPanel(layout.UiRect);
+    DungeonRenderer.DrawHud(currentView, turns.TurnNumber, runner.Party, layout.HudRect);
+
+    Raylib.EndDrawing();
 }
 
-DungeonRenderer.UnloadAnimationTextures();
-DungeonRenderer.UnloadTextures();
+DungeonRenderer.Unload();
 Raylib.CloseWindow();
+
+// ── Layout ────────────────────────────────────────────────────────────────────
+
+GameLayout ComputeLayout(int winW, int winH)
+{
+    const int hudH    = 72;    // hauteur barre HUD sous la vue
+    const int uiMinW  = 260;   // largeur minimale du panneau UI à droite
+
+    // Carré 3D : prend toute la hauteur disponible (moins le HUD), limité par la largeur
+    int availH   = winH - hudH;
+    int availW   = winW - uiMinW;
+    int viewSize = Math.Max(100, Math.Min(availH, availW));
+
+    // Vue centrée verticalement, collée à gauche
+    float viewX = 0;
+    float viewY = (winH - hudH - viewSize) / 2f;
+
+    var viewRect = new Rectangle(viewX, viewY, viewSize, viewSize);
+    var hudRect  = new Rectangle(0,     winH - hudH, winW, hudH);
+    var uiRect   = new Rectangle(viewX + viewSize, 0, winW - viewSize, winH - hudH);
+
+    return new GameLayout(viewRect, uiRect, hudRect);
+}
+
+// ── Panneau UI (placeholder) ──────────────────────────────────────────────────
+
+void DrawUiPanel(Rectangle rect)
+{
+    if (rect.Width <= 0) return;
+    Raylib.DrawRectangle((int)rect.X, (int)rect.Y, (int)rect.Width, (int)rect.Height,
+                         new Color(22, 20, 18, 255));
+    Raylib.DrawLine((int)rect.X, (int)rect.Y, (int)rect.X, (int)(rect.Y + rect.Height),
+                    new Color(48, 42, 36, 255));
+    // Placeholder : "Inventaire / minimap à venir"
+    Raylib.DrawText("[ UI ]", (int)rect.X + 12, (int)rect.Y + 12, 14, new Color(60, 55, 50, 255));
+}
 
 // ── Input ─────────────────────────────────────────────────────────────────────
 
 void HandleInput()
 {
-    PartyActionType? action    = null;
-    AnimType?        animType  = null;
+    PartyActionType? action   = null;
+    AnimType?        animType = null;
 
     if      (Raylib.IsKeyPressed(KeyboardKey.W) || Raylib.IsKeyPressed(KeyboardKey.Up))
         (action, animType) = (PartyActionType.MoveForward,  AnimType.Forward);
@@ -100,35 +151,26 @@ void HandleInput()
 
     if (animType.HasValue)
     {
-        // Capture l'état AVANT le mouvement
         currentView = runner.GetView();
         DungeonRenderer.CaptureFrom(currentView, runner);
 
-        // Mémorise position + facing pour savoir si ça a bougé
         var posBefore    = runner.Party.Position;
         var facingBefore = runner.Party.Facing;
-
         turns.ExecuteAction(action.Value);
 
-        bool moved = runner.Party.Position != posBefore
-                  || runner.Party.Facing   != facingBefore;
-
-        if (moved)
+        if (runner.Party.Position != posBefore || runner.Party.Facing != facingBefore)
         {
-            // Capture l'état APRÈS, démarre l'animation
             currentView = runner.GetView();
             DungeonRenderer.CaptureTo(currentView, runner);
             anim.Start(animType.Value);
         }
         else
         {
-            // Mouvement bloqué (mur) : pas d'animation
             currentView = runner.GetView();
         }
     }
     else
     {
-        // Interact / Wait : pas d'animation
         turns.ExecuteAction(action.Value);
         currentView = runner.GetView();
     }
