@@ -42,16 +42,33 @@ var turns  = new TurnManager(runner, entities);
 Raylib.InitWindow(DungeonRenderer.ScreenWidth, DungeonRenderer.ScreenHeight, "DungeonCrawler");
 Raylib.SetTargetFPS(60);
 DungeonRenderer.LoadTextures("Assets");
+DungeonRenderer.InitAnimationTextures();
+
+// ── État animation ────────────────────────────────────────────────────────────
+
+var  anim        = new AnimationState();
+var  currentView = runner.GetView();
 
 // ── Main loop ─────────────────────────────────────────────────────────────────
 
 while (!Raylib.WindowShouldClose())
 {
-    HandleInput();
-    var view = runner.GetView();
-    DungeonRenderer.Render(view, runner, turns.TurnNumber);
+    float dt = Raylib.GetFrameTime();
+    anim.Update(dt);
+
+    if (!anim.IsPlaying)
+        HandleInput();
+
+    if (anim.IsPlaying)
+        DungeonRenderer.RenderAnimated(anim.Type, anim.Progress, currentView, runner, turns.TurnNumber);
+    else
+    {
+        currentView = runner.GetView();
+        DungeonRenderer.Render(currentView, runner, turns.TurnNumber);
+    }
 }
 
+DungeonRenderer.UnloadAnimationTextures();
 DungeonRenderer.UnloadTextures();
 Raylib.CloseWindow();
 
@@ -59,25 +76,60 @@ Raylib.CloseWindow();
 
 void HandleInput()
 {
-    PartyActionType? action = null;
+    PartyActionType? action    = null;
+    AnimType?        animType  = null;
 
     if      (Raylib.IsKeyPressed(KeyboardKey.W) || Raylib.IsKeyPressed(KeyboardKey.Up))
-        action = PartyActionType.MoveForward;
+        (action, animType) = (PartyActionType.MoveForward,  AnimType.Forward);
     else if (Raylib.IsKeyPressed(KeyboardKey.S) || Raylib.IsKeyPressed(KeyboardKey.Down))
-        action = PartyActionType.MoveBackward;
+        (action, animType) = (PartyActionType.MoveBackward, AnimType.Backward);
     else if (Raylib.IsKeyPressed(KeyboardKey.A) || Raylib.IsKeyPressed(KeyboardKey.Left))
-        action = PartyActionType.TurnLeft;
+        (action, animType) = (PartyActionType.TurnLeft,     AnimType.TurnLeft);
     else if (Raylib.IsKeyPressed(KeyboardKey.D) || Raylib.IsKeyPressed(KeyboardKey.Right))
-        action = PartyActionType.TurnRight;
+        (action, animType) = (PartyActionType.TurnRight,    AnimType.TurnRight);
     else if (Raylib.IsKeyPressed(KeyboardKey.Q))
-        action = PartyActionType.StrafeLeft;
+        (action, animType) = (PartyActionType.StrafeLeft,   AnimType.StrafeLeft);
     else if (Raylib.IsKeyPressed(KeyboardKey.E))
-        action = PartyActionType.StrafeRight;
+        (action, animType) = (PartyActionType.StrafeRight,  AnimType.StrafeRight);
     else if (Raylib.IsKeyPressed(KeyboardKey.F))
         action = PartyActionType.Interact;
     else if (Raylib.IsKeyPressed(KeyboardKey.Space))
         action = PartyActionType.Wait;
 
-    if (action.HasValue)
+    if (!action.HasValue) return;
+
+    if (animType.HasValue)
+    {
+        // Capture l'état AVANT le mouvement
+        currentView = runner.GetView();
+        DungeonRenderer.CaptureFrom(currentView, runner);
+
+        // Mémorise position + facing pour savoir si ça a bougé
+        var posBefore    = runner.Party.Position;
+        var facingBefore = runner.Party.Facing;
+
         turns.ExecuteAction(action.Value);
+
+        bool moved = runner.Party.Position != posBefore
+                  || runner.Party.Facing   != facingBefore;
+
+        if (moved)
+        {
+            // Capture l'état APRÈS, démarre l'animation
+            currentView = runner.GetView();
+            DungeonRenderer.CaptureTo(currentView, runner);
+            anim.Start(animType.Value);
+        }
+        else
+        {
+            // Mouvement bloqué (mur) : pas d'animation
+            currentView = runner.GetView();
+        }
+    }
+    else
+    {
+        // Interact / Wait : pas d'animation
+        turns.ExecuteAction(action.Value);
+        currentView = runner.GetView();
+    }
 }
