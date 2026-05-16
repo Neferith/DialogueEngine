@@ -1,6 +1,6 @@
-﻿using DungeonCrawler.Core;
-using DungeonCrawler.Core.Rendering;
+﻿using DungeonCrawler.Core.Rendering;
 using DungeonCrawler.Core.Systems;
+using DungeonCrawler.MapLoader;
 using DungeonCrawler.RaylibGame;
 using Raylib_cs;
 
@@ -8,16 +8,14 @@ namespace DungeonCrawler.RaylibGame;
 
 public class RaylibGameRunner
 {
-    private readonly DungeonRunner _runner;
-    private readonly TurnManager _turns;
+    private readonly DungeonSession _session;
 
     private AnimationState _anim = new();
     private DungeonView _currentView = null!;
 
-    public RaylibGameRunner(DungeonRunner runner, TurnManager turns)
+    public RaylibGameRunner(DungeonSession session)
     {
-        _runner = runner;
-        _turns = turns;
+        _session = session;
     }
 
     public void Run(string title = "DungeonCrawler", int width = 1100, int height = 760,
@@ -29,7 +27,7 @@ public class RaylibGameRunner
         DungeonRenderer.Init(assetsPath);
 
         _anim = new AnimationState();
-        _currentView = _runner.GetView();
+        _currentView = _session.GetView();
 
         while (!Raylib.WindowShouldClose())
         {
@@ -41,8 +39,8 @@ public class RaylibGameRunner
 
             if (!_anim.IsPlaying)
             {
-                _currentView = _runner.GetView();
-                DungeonRenderer.RenderScene(_currentView, _runner);
+                _currentView = _session.GetView();
+                DungeonRenderer.RenderScene(_currentView, _session.Runner);
             }
 
             Raylib.BeginDrawing();
@@ -56,7 +54,8 @@ public class RaylibGameRunner
                 DungeonRenderer.DrawSceneAt(layout.ViewRect);
 
             DrawUiPanel(layout.UiRect);
-            DungeonRenderer.DrawHud(_currentView, _turns.TurnNumber, _runner.Party, layout.HudRect);
+            DungeonRenderer.DrawHud(_currentView, _session.TurnNumber,
+                                    _session.Party, layout.HudRect);
 
             Raylib.EndDrawing();
         }
@@ -93,28 +92,28 @@ public class RaylibGameRunner
 
         if (animType.HasValue)
         {
-            _currentView = _runner.GetView();
-            DungeonRenderer.CaptureFrom(_currentView, _runner);
+            _currentView = _session.GetView();
+            DungeonRenderer.CaptureFrom(_currentView, _session.Runner);
 
-            var posBefore = _runner.Party.Position;
-            var facingBefore = _runner.Party.Facing;
-            _turns.ExecuteAction(action.Value);
+            var posBefore = _session.Party.Position;
+            var facingBefore = _session.Party.Facing;
+            _session.ExecuteAction(action.Value);
 
-            if (_runner.Party.Position != posBefore || _runner.Party.Facing != facingBefore)
+            if (_session.Party.Position != posBefore || _session.Party.Facing != facingBefore)
             {
-                _currentView = _runner.GetView();
-                DungeonRenderer.CaptureTo(_currentView, _runner);
+                _currentView = _session.GetView();
+                DungeonRenderer.CaptureTo(_currentView, _session.Runner);
                 _anim.Start(animType.Value);
             }
             else
             {
-                _currentView = _runner.GetView();
+                _currentView = _session.GetView();
             }
         }
         else
         {
-            _turns.ExecuteAction(action.Value);
-            _currentView = _runner.GetView();
+            _session.ExecuteAction(action.Value);
+            _currentView = _session.GetView();
         }
     }
 

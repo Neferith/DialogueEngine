@@ -1,24 +1,29 @@
 ﻿using DungeonCrawler.Core;
 using DungeonCrawler.Core.Characters;
 using DungeonCrawler.Core.Entities;
+using DungeonCrawler.Core.Entities.Behaviors;
 using DungeonCrawler.Core.Models;
 using DungeonCrawler.Core.Systems;
 using DungeonCrawler.MapLoader;
 using DungeonCrawler.RaylibGame;
 
+// ── Chemins ───────────────────────────────────────────────────────────────────
+
+var mapsPath = "maps";
+var modulesPath = "modules";
+
 // ── Chargement de la map ──────────────────────────────────────────────────────
 
 var loader = new MapFileLoader();
-var loaded = loader.Load(
-    Path.Combine("maps", "the_cells.map.json"),
-    "modules");
+var loaded = loader.Load(Path.Combine(mapsPath, "the_cells.map.json"), modulesPath);
 
 // ── Party ─────────────────────────────────────────────────────────────────────
 
-var spawnPos = loaded.PlayerSpawn ?? new GridPosition(1, 1);
-var spawnFacing = loaded.PlayerFacing;
+var party = new Party(
+    loaded.PlayerSpawn ?? new GridPosition(1, 1),
+    loaded.PlayerFacing,
+    maxSize: 4);
 
-var party = new Party(spawnPos, spawnFacing, maxSize: 4);
 party.TryAddMember(new PartyMember("Aria"));
 party.TryAddMember(new PartyMember("Borin"));
 
@@ -26,9 +31,12 @@ party.TryAddMember(new PartyMember("Borin"));
 
 var entities = new EntitySystem();
 
-// ── Lancement ─────────────────────────────────────────────────────────────────
+// ── Session ───────────────────────────────────────────────────────────────────
 
 var runner = new DungeonRunner(loaded.Map, party, entities);
 var turns = new TurnManager(runner, entities);
+var session = new DungeonSession(loaded, runner, turns, loader, mapsPath, modulesPath);
+    
+// ── Lancement ─────────────────────────────────────────────────────────────────
 
-new RaylibGameRunner(runner, turns).Run("Nostro");
+new RaylibGameRunner(session).Run("Nostro");
