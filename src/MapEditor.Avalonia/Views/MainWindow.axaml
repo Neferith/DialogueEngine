@@ -1,0 +1,220 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MapEditor.Avalonia.ViewModels"
+        xmlns:modules="using:MapEditor.Core.Modules"
+        xmlns:controls="using:MapEditor.Avalonia.Controls"
+        x:Class="MapEditor.Avalonia.Views.MainWindow"
+        Title="Map Editor"
+        Width="1280" Height="820"
+        WindowStartupLocation="CenterScreen">
+
+  <DockPanel>
+
+    <!-- ── Menu ── -->
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="_Fichier">
+        <MenuItem Header="_Nouvelle map…" Command="{Binding NewMapCommand}" />
+        <MenuItem Header="_Ouvrir…"       Command="{Binding OpenMapCommand}" />
+        <Separator />
+        <MenuItem Header="_Enregistrer"   Command="{Binding SaveMapCommand}" />
+        <MenuItem Header="Enregistrer _sous…" Command="{Binding SaveMapAsCommand}" />
+      </MenuItem>
+    </Menu>
+
+    <!-- ── Toolbar ── -->
+    <Border DockPanel.Dock="Top" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="6,4">
+      <StackPanel Orientation="Horizontal" Spacing="4">
+
+        <TextBlock Text="Outil :" VerticalAlignment="Center" Margin="0,0,6,0" />
+
+        <ToggleButton Content="🖌 Tile"
+                      IsChecked="{Binding IsPaintTileActive, Mode=OneWay}"
+                      Command="{Binding SetToolCommand}"
+                      CommandParameter="PaintTile"
+                      Width="80" />
+
+        <ToggleButton Content="👤 Entité"
+                      IsChecked="{Binding IsPaintEntityActive, Mode=OneWay}"
+                      Command="{Binding SetToolCommand}"
+                      CommandParameter="PaintEntity"
+                      Width="80" />
+
+        <ToggleButton Content="🗑 Effacer"
+                      IsChecked="{Binding IsEraseActive, Mode=OneWay}"
+                      Command="{Binding SetToolCommand}"
+                      CommandParameter="Erase"
+                      Width="80" />
+
+        <ToggleButton Content="↗ Sélect."
+                      IsChecked="{Binding IsSelectActive, Mode=OneWay}"
+                      Command="{Binding SetToolCommand}"
+                      CommandParameter="Select"
+                      Width="80" />
+
+        <Separator Width="1" Background="#555" Margin="8,0" />
+
+        <TextBlock Text="Module :" VerticalAlignment="Center" />
+        <ComboBox ItemsSource="{Binding Modules}"
+                  SelectedItem="{Binding ActiveModule}"
+                  DisplayMemberBinding="{Binding Name}"
+                  Width="160" />
+
+      </StackPanel>
+    </Border>
+
+    <!-- ── Status bar ── -->
+    <Border DockPanel.Dock="Bottom" BorderBrush="#333" BorderThickness="0,1,0,0" Padding="6,3">
+      <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#AAA" />
+    </Border>
+
+    <!-- ── Main 3-column layout ── -->
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="210" MinWidth="160" />
+        <ColumnDefinition Width="4" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="4" />
+        <ColumnDefinition Width="270" MinWidth="200" />
+      </Grid.ColumnDefinitions>
+
+      <!-- ══ LEFT — Palette ══ -->
+      <DockPanel Grid.Column="0">
+        <TextBlock DockPanel.Dock="Top" Text="Palette" FontWeight="Bold"
+                   Padding="8,6" Background="#252535" />
+
+        <TabControl TabStripPlacement="Top">
+
+          <!-- Tiles tab -->
+          <TabItem Header="Tiles">
+            <ListBox ItemsSource="{Binding TileTypes}"
+                     SelectedItem="{Binding SelectedTileType}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="modules:TileTypeDefinition">
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
+                    <Border Width="16" Height="16" CornerRadius="2"
+                            Background="{Binding Color}" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </TabItem>
+
+          <!-- Entities tab -->
+          <TabItem Header="Entités">
+            <ListBox ItemsSource="{Binding EntityTypes}"
+                     SelectedItem="{Binding SelectedEntityType}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="modules:EntityTypeDefinition">
+                  <StackPanel Orientation="Horizontal" Spacing="8" Margin="2">
+                    <Ellipse Width="14" Height="14" Fill="{Binding Color}" />
+                    <TextBlock VerticalAlignment="Center">
+                      <TextBlock.Text>
+                        <MultiBinding StringFormat="{}{0} ({1})">
+                          <Binding Path="Name" />
+                          <Binding Path="Category" />
+                        </MultiBinding>
+                      </TextBlock.Text>
+                    </TextBlock>
+                  </StackPanel>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </TabItem>
+
+        </TabControl>
+      </DockPanel>
+
+      <GridSplitter Grid.Column="1" ResizeDirection="Columns" Background="#333" />
+
+      <!-- ══ CENTER — Map canvas ══ -->
+      <ScrollViewer Grid.Column="2"
+                    HorizontalScrollBarVisibility="Auto"
+                    VerticalScrollBarVisibility="Auto"
+                    Background="#1A1A2A">
+        <controls:MapCanvasControl DataContext="{Binding}" />
+      </ScrollViewer>
+
+      <GridSplitter Grid.Column="3" ResizeDirection="Columns" Background="#333" />
+
+      <!-- ══ RIGHT — Properties ══ -->
+      <ScrollViewer Grid.Column="4"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="8" Spacing="8" DataContext="{Binding Properties}">
+
+          <TextBlock Text="Propriétés" FontWeight="Bold" FontSize="14" />
+
+          <!-- Empty state -->
+          <TextBlock Text="Sélectionne une cellule (outil ↗)."
+                     Foreground="#888" FontStyle="Italic" FontSize="12"
+                     IsVisible="{Binding !HasSelection}" />
+
+          <!-- Selection label -->
+          <TextBlock Text="{Binding SelectionLabel}"
+                     FontWeight="SemiBold" IsVisible="{Binding HasSelection}" />
+
+          <!-- ── Tile properties ── -->
+          <StackPanel IsVisible="{Binding ShowTileSection}" Spacing="6">
+            <TextBlock Text="Type de tile :" FontSize="11" Foreground="#AAA" />
+            <TextBlock Text="{Binding TileTypeName}" />
+
+            <CheckBox IsChecked="{Binding TileWalkable}" Content="Walkable" />
+
+            <Expander Header="Transition" IsExpanded="{Binding HasTransition}">
+              <StackPanel Spacing="4" Margin="0,4,0,0">
+                <CheckBox IsChecked="{Binding HasTransition}" Content="Activer" />
+                <TextBlock Text="Map cible :" FontSize="11" />
+                <TextBox Text="{Binding TransitionTargetMapId}" Watermark="id_de_la_map" />
+                <TextBlock Text="Position cible (X, Y) :" FontSize="11" />
+                <Grid ColumnDefinitions="*,8,*">
+                  <TextBox Grid.Column="0" Text="{Binding TransitionTargetX}" Watermark="X" />
+                  <TextBox Grid.Column="2" Text="{Binding TransitionTargetY}" Watermark="Y" />
+                </Grid>
+                <TextBlock Text="Orientation :" FontSize="11" />
+                <ComboBox ItemsSource="{Binding Orientations}"
+                          SelectedItem="{Binding TransitionOrientation}"
+                          HorizontalAlignment="Stretch" />
+              </StackPanel>
+            </Expander>
+
+            <Button Content="Appliquer" Command="{Binding ApplyTilePropertiesCommand}"
+                    HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+          <!-- ── Entity properties ── -->
+          <StackPanel IsVisible="{Binding ShowEntitySection}" Spacing="6">
+            <TextBlock Text="Type d'entité :" FontSize="11" Foreground="#AAA" />
+            <TextBlock Text="{Binding EntityTypeName}" />
+
+            <TextBlock Text="Orientation :" FontSize="11" />
+            <ComboBox ItemsSource="{Binding Orientations}"
+                      SelectedItem="{Binding EntityOrientation}"
+                      HorizontalAlignment="Stretch" />
+
+            <TextBlock Text="Propriétés :" FontSize="11" Foreground="#AAA"
+                       IsVisible="{Binding EntityProperties.Count}" />
+            <ItemsControl ItemsSource="{Binding EntityProperties}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:PropertyEntryViewModel">
+                  <Grid ColumnDefinitions="Auto,8,*" Margin="0,2">
+                    <TextBlock Grid.Column="0" Text="{Binding Key}"
+                               VerticalAlignment="Center" MinWidth="80" />
+                    <TextBox   Grid.Column="2" Text="{Binding Value}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Button Content="Appliquer" Command="{Binding ApplyEntityPropertiesCommand}"
+                    HorizontalAlignment="Stretch" />
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+
+    </Grid>
+  </DockPanel>
+</Window>
