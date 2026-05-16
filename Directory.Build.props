@@ -9,7 +9,7 @@
     <Authors>Vivien</Authors>
     <Company>Vivien</Company>
     <Copyright>Copyright © Vivien 2025</Copyright>
-    <RepositoryUrl>https://github.com/TON_USERNAME/DialogueEngine</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Neferith/DialogueEngine.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>dialogue;rpg;game;csharp</PackageTags>
