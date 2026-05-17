@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MapEditor.Avalonia;
 using MapEditor.Avalonia.DI;
 using MapEditor.Core.Models;
 using MapEditor.Core.Modules;
 using MapEditor.Core.Serialization;
 using System.Collections.ObjectModel;
-using MapEditor.Avalonia;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MapEditor.Avalonia.ViewModels;
 
@@ -26,6 +28,8 @@ public partial class EditorViewModel : ObservableObject
     [ObservableProperty] private TileTypeDefinition?   _selectedTileType;
     [ObservableProperty] private EntityTypeDefinition? _selectedEntityType;
     [ObservableProperty] private string _statusText = "Crée ou ouvre une map pour commencer.";
+    [ObservableProperty] private CampaignProject? _activeProject;
+    [ObservableProperty] private string _projectName = "Aucun projet";
 
     public ObservableCollection<ModuleDefinition>   Modules     { get; } = new();
     public ObservableCollection<TileTypeDefinition>   TileTypes   { get; } = new();
@@ -45,10 +49,21 @@ public partial class EditorViewModel : ObservableObject
         _loader     = loaderFactory.CreateModuleLoader();
         _dialog     = dialog;
 
-        LoadModules();
+      //  LoadModules();
     }
 
     // ── Module loading ────────────────────────────────────────────────────────
+
+    private void LoadModulesFromProject(CampaignProject project)
+    {
+        Modules.Clear();
+        var loaded = _loader.LoadAll(project.AbsoluteModulesPath);
+        foreach (var m in loaded) Modules.Add(m);
+        ActiveModule = Modules.FirstOrDefault();
+        StatusText = loaded.Count == 0
+            ? $"Aucun module trouvé dans {project.AbsoluteModulesPath}"
+            : $"Projet «{project.Name}» — {loaded.Count} biome(s) chargé(s).";
+    }
 
     private void LoadModules()
     {
@@ -89,25 +104,82 @@ public partial class EditorViewModel : ObservableObject
     // ── File commands ─────────────────────────────────────────────────────────
 
     [RelayCommand]
+    private async Task OpenProject()
+    {
+        var path = await _dialog.ShowOpenProjectDialog();
+        if (path == null) return;
+
+        var project = _serializer.LoadProject(path);
+        if (project == null) { StatusText = "Erreur : impossible de lire le projet."; return; }
+
+        ActiveProject = project;
+        ProjectName = project.Name;
+        LoadModulesFromProject(project);
+        Properties.Clear();
+        MapGrid = null;
+    }
+
+    [RelayCommand(CanExecute = nameof(HasProject))]
+    private async Task NewBiome()
+    {
+        var result = await _dialog.ShowNewBiomeDialog();
+        if (result == null || ActiveProject == null) return;
+
+        // Créer le dossier + module.json
+        var biomeDir = Path.Combine(ActiveProject.AbsoluteModulesPath, result.Id);
+        Directory.CreateDirectory(biomeDir);
+        Directory.CreateDirectory(Path.Combine(biomeDir, "textures"));
+
+        var module = new ModuleDefinition
+        {
+            Id = result.Id,
+            Name = result.Name,
+            SpriteSize = 16,
+            Textures = new ModuleTextures
+            {
+                Wall = "textures/wall.png",
+                Floor = "textures/floor.png",
+                Ceiling = "textures/ceiling.png",
+                DoorClosed = "textures/door_closed.png",
+                DoorOpen = "textures/door_open.png"
+            }
+        };
+
+        var modulePath = Path.Combine(biomeDir, "module.json");
+        File.WriteAllText(modulePath, JsonSerializer.Serialize(module, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        }));
+
+        // Recharger les modules
+        LoadModulesFromProject(ActiveProject);
+        StatusText = $"Biome «{result.Name}» créé.";
+    }
+
+    private bool HasProject() => ActiveProject != null;
+
+    [RelayCommand(CanExecute = nameof(HasProject))]
     private async Task NewMap()
     {
         if (Modules.Count == 0) { StatusText = "Aucun module disponible."; return; }
 
         var result = await _dialog.ShowNewMapDialog(Modules);
-        if (result == null) return;
+        if (result == null || ActiveProject == null) return;
 
         var module = Modules.First(m => m.Id == result.ModuleId);
         var mapFile = new MapFile
         {
-            Id                = result.Id,
-            ModuleId          = result.ModuleId,
-            Size              = new SizeData(result.Width, result.Height),
+            Id = result.Id,
+            ModuleId = result.ModuleId,
+            Size = new SizeData(result.Width, result.Height),
             DefaultTileTypeId = result.DefaultTileTypeId
         };
 
         _currentFilePath = null;
         OpenMap(mapFile, module);
-        StatusText = $"Nouvelle map « {result.Id} » ({result.Width}×{result.Height}).";
+        StatusText = $"Nouvelle map «{result.Id}» ({result.Width}×{result.Height}).";
     }
 
     [RelayCommand]
