@@ -1,0 +1,14 @@
+{
+  "id": "biome_test",
+  "name": "biome de test",
+  "spriteSize": 16,
+  "tileTypes": [],
+  "entityTypes": [],
+  "textures": {
+    "wall": "textures/wall.png",
+    "floor": "textures/floor.png",
+    "ceiling": "textures/ceiling.png",
+    "doorClosed": "textures/door_closed.png",
+    "doorOpen": "textures/door_open.png"
+  }
+}

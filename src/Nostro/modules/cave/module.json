@@ -1,0 +1,57 @@
+{
+  "id": "cave",
+  "name": "Cave",
+  "spriteSize": 16,
+  "tileTypes": [
+    {
+      "id": "STONE_WALL",
+      "name": "Stone Wall",
+      "defaultWalkable": false,
+      "isWall": true,
+      "tileTag": "None",
+      "floorType": "Stone",
+      "ceilingType": "Stone",
+      "spriteIndex": 1,
+      "color": "#3A3A4A"
+    },
+    {
+      "id": "STONE_FLOOR",
+      "name": "Stone Floor",
+      "defaultWalkable": true,
+      "isWall": false,
+      "tileTag": "None",
+      "floorType": "Stone",
+      "ceilingType": "Stone",
+      "spriteIndex": 0,
+      "color": "#7A7A8A"
+    },
+    {
+      "id": "STONE_DOOR",
+      "name": "Stone Door",
+      "defaultWalkable": false,
+      "isWall": true,
+      "tileTag": "Door",
+      "floorType": "Stone",
+      "ceilingType": "Stone",
+      "spriteIndex": 2,
+      "color": "#8B5E3C"
+    }
+  ],
+  "entityTypes": [
+    {
+      "id": "PLAYER_SPAWN",
+      "name": "Player Spawn",
+      "category": "SPAWN",
+      "spriteIndex": 0,
+      "color": "#00C853",
+      "properties": []
+    }
+  ],
+  "textures": {
+    "wall": "textures/cavern_wall_low.png",
+    "floor": "textures/cavern_wall_low.png",
+    "ceiling": "textures/cavern_wall_low.png",
+    "doorClosed": "textures/draft_door_closed.png",
+    "doorOpen": "textures/draft_door_opened.png"
+  }
+}

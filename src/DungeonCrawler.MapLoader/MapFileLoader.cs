@@ -54,25 +54,29 @@ public class MapFileLoader
         return BuildLoadedMap(mapFile, module);
     }
 
+    public ModuleDefinition? GetModule(string moduleId) =>
+    _moduleCache.TryGetValue(moduleId, out var m) ? m : null;
+
     // ── Conversion ────────────────────────────────────────────────────────────
 
     private LoadedMap BuildLoadedMap(MapFile mapFile, ModuleDefinition module)
     {
-        var width  = mapFile.Size.Width;
+        var width = mapFile.Size.Width;
         var height = mapFile.Size.Height;
 
         var dungeonMap = new DungeonMap(width, height, mapFile.Id);
 
-        // 1. Remplir avec le tile par défaut
+        // Flip Y : éditeur = Y↓ (écran), moteur = Y↑ (math)
+        int FlipY(int y) => height - 1 - y;
+
         var defaultDef = module.FindTileType(mapFile.DefaultTileTypeId);
         if (defaultDef != null)
         {
             for (int x = 0; x < width; x++)
-            for (int y = 0; y < height; y++)
-                dungeonMap.SetTile(x, y, TileConverter.Convert(defaultDef));
+                for (int y = 0; y < height; y++)
+                    dungeonMap.SetTile(x, y, TileConverter.Convert(defaultDef));
         }
 
-        // 2. Appliquer les overrides (tiles non-défaut)
         var transitions = new Dictionary<GridPosition, MapTransition>();
 
         foreach (var tileData in mapFile.Tiles)
@@ -80,44 +84,32 @@ public class MapFileLoader
             var def = module.FindTileType(tileData.TileTypeId);
             if (def == null)
             {
-                Console.Error.WriteLine(
-                    $"[MapFileLoader] TileType inconnu '{tileData.TileTypeId}' — ignoré.");
+                Console.Error.WriteLine($"[MapFileLoader] TileType inconnu '{tileData.TileTypeId}' — ignoré.");
                 continue;
             }
 
-            // Le flag walkable dans l'éditeur peut overrider le défaut du type
             var tile = TileConverter.Convert(def, walkableOverride: tileData.Walkable);
-            dungeonMap.SetTile(tileData.Position.X, tileData.Position.Y, tile);
+            dungeonMap.SetTile(tileData.Position.X, FlipY(tileData.Position.Y), tile);
 
-            // Stocker la transition si présente
             if (tileData.Transition != null)
-            {
-                var pos = new GridPosition(tileData.Position.X, tileData.Position.Y);
-                transitions[pos] = tileData.Transition;
-            }
+                transitions[new GridPosition(tileData.Position.X, FlipY(tileData.Position.Y))] = tileData.Transition;
         }
 
-        // 3. Trouver le spawn du joueur parmi les entités
-        GridPosition? playerSpawn  = null;
-        Direction     playerFacing = Direction.North;
+        GridPosition? playerSpawn = null;
+        Direction playerFacing = Direction.North;
 
         foreach (var entity in mapFile.Entities)
         {
             if (!string.Equals(entity.EntityTypeId, "PLAYER_SPAWN",
                                StringComparison.OrdinalIgnoreCase)) continue;
 
-            playerSpawn  = new GridPosition(entity.Position.X, entity.Position.Y);
+            playerSpawn = new GridPosition(entity.Position.X, FlipY(entity.Position.Y));
             playerFacing = ParseDirection(entity.Orientation);
-            break; // On ne prend que le premier spawn
+            break;
         }
 
-        return new LoadedMap(
-            dungeonMap,
-            transitions,
-            mapFile.Entities,
-            playerSpawn,
-            playerFacing,
-            mapFile.ModuleId);
+        return new LoadedMap(dungeonMap, transitions, mapFile.Entities,
+                             playerSpawn, playerFacing, mapFile.ModuleId);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -142,4 +134,5 @@ public class MapFileLoader
             "WEST"  => Direction.West,
             _       => Direction.North
         };
+
 }

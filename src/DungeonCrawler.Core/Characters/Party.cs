@@ -42,4 +42,11 @@ public class Party
 
     public override string ToString() =>
         $"{Position} {Facing.ToArrow()} [{string.Join(", ", _members)}]";
+
+    /// <summary>Téléporte la party à une position et orientation données (transition entre maps).</summary>
+    public void Teleport(GridPosition position, Direction facing)
+    {
+        Position = position;
+        Facing = facing;
+    }
 }

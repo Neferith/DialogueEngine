@@ -6,11 +6,15 @@ using MapEditor.Core.Modules;
 
 namespace MapEditor.Avalonia;
 
+public record NewBiomeDialogResult(string Id, string Name);
+
 public interface IDialogService
 {
     Task<NewMapDialogResult?> ShowNewMapDialog(IReadOnlyList<ModuleDefinition> modules);
     Task<string?> ShowOpenFileDialog();
     Task<string?> ShowSaveFileDialog(string suggestedName);
+    Task<string?> ShowOpenProjectDialog();
+    Task<NewBiomeDialogResult?> ShowNewBiomeDialog();
 }
 
 public class AvaloniaDialogService(Window owner) : IDialogService
@@ -42,5 +46,22 @@ public class AvaloniaDialogService(Window owner) : IDialogService
             FileTypeChoices = [new FilePickerFileType("Map JSON") { Patterns = ["*.map.json"] }]
         });
         return file?.Path.LocalPath;
+    }
+
+    public async Task<string?> ShowOpenProjectDialog()
+    {
+        var files = await owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Ouvrir un projet campagne",
+            AllowMultiple = false,
+            FileTypeFilter = [new FilePickerFileType("Campaign") { Patterns = ["*.campaign.json"] }]
+        });
+        return files.Count == 1 ? files[0].Path.LocalPath : null;
+    }
+
+    public async Task<NewBiomeDialogResult?> ShowNewBiomeDialog()
+    {
+        var dialog = new NewBiomeDialog();
+        return await dialog.ShowDialog<NewBiomeDialogResult?>(owner);
     }
 }

@@ -101,7 +101,7 @@ public class TurnManager
             case InteractionType.Door:
                 // Open the door: make the tile passable
                 view.FacingTarget.Tile.IsSolid = false;
-                view.FacingTarget.Tile.Tag     = TileTag.None;
+                view.FacingTarget.Tile.Tag     = TileTag.DoorOpen;
                 return true;
 
             case InteractionType.Npc:

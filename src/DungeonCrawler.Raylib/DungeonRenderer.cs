@@ -37,43 +37,18 @@ public static class DungeonRenderer
     // Textures
     // =========================================================================
 
+    private static Texture2D _texDoorOpen;
     private static Texture2D _texWall;
     private static Texture2D _texFloor;
     private static Texture2D _texCeiling;
     private static Texture2D _texDoor;
     private static bool      _texLoaded;
 
-    public static void Init(string folder = "Assets")
+    public static void Init(string assetsPath = "Assets")
     {
-        // Textures de sol/mur/plafond/porte
-
-        _texWall    = Raylib.LoadTexture(Path.Combine(folder, "cell_wall.png"));
-        _texFloor   = Raylib.LoadTexture(Path.Combine(folder, "cell_floor.png"));
-        _texCeiling = Raylib.LoadTexture(Path.Combine(folder, "cell_ceiling.png"));
-        _texDoor    = Raylib.LoadTexture(Path.Combine(folder, "draft_door_closed.png"));
-
-        Raylib.SetTextureFilter(_texWall,    TextureFilter.Bilinear);
-        Raylib.SetTextureFilter(_texFloor,   TextureFilter.Bilinear);
-        Raylib.SetTextureFilter(_texCeiling, TextureFilter.Bilinear);
-        Raylib.SetTextureFilter(_texDoor,    TextureFilter.Bilinear);
-        Raylib.SetTextureWrap(_texWall,    TextureWrap.Repeat);
-        Raylib.SetTextureWrap(_texFloor,   TextureWrap.Repeat);
-        Raylib.SetTextureWrap(_texCeiling, TextureWrap.Repeat);
-
-        // Validation : raylib retourne Id=0 si le fichier est introuvable
-        bool ok = _texWall.Id > 0 && _texFloor.Id > 0 &&
-                  _texCeiling.Id > 0 && _texDoor.Id > 0;
-        if (!ok)
-            Console.Error.WriteLine(
-                $"[DungeonRenderer] Texture load failed — wall={_texWall.Id} " +
-                $"floor={_texFloor.Id} ceil={_texCeiling.Id} door={_texDoor.Id}\n" +
-                $"  Looked in: {Path.GetFullPath(folder)}");
-        _texLoaded = ok;
-
-        // RenderTextures (720×720)
         _viewTex = Raylib.LoadRenderTexture(ViewSize, ViewSize);
         _fromTex = Raylib.LoadRenderTexture(ViewSize, ViewSize);
-        _toTex   = Raylib.LoadRenderTexture(ViewSize, ViewSize);
+        _toTex = Raylib.LoadRenderTexture(ViewSize, ViewSize);
     }
 
     public static void Unload()
@@ -84,6 +59,7 @@ public static class DungeonRenderer
             Raylib.UnloadTexture(_texFloor);
             Raylib.UnloadTexture(_texCeiling);
             Raylib.UnloadTexture(_texDoor);
+            Raylib.UnloadTexture(_texDoorOpen);
             _texLoaded = false;
         }
         Raylib.UnloadRenderTexture(_viewTex);
@@ -92,6 +68,58 @@ public static class DungeonRenderer
     }
 
     public static void UnloadTextures() => Unload();
+
+
+    public static void LoadTextureSet(BiomeTextures? textures)
+    {
+        if (_texLoaded)
+        {
+            Raylib.UnloadTexture(_texWall);
+            Raylib.UnloadTexture(_texFloor);
+            Raylib.UnloadTexture(_texCeiling);
+            Raylib.UnloadTexture(_texDoor);
+            Raylib.UnloadTexture(_texDoorOpen);
+            _texLoaded = false;
+        }
+
+        if (textures == null) return;
+
+        _texWall = LoadTex(textures.Wall);
+        _texFloor = LoadTex(textures.Floor);
+        _texCeiling = LoadTex(textures.Ceiling);
+        _texDoor = LoadTex(textures.DoorClosed);
+        _texDoorOpen = LoadTex(textures.DoorOpen);
+
+        bool ok = _texWall.Id > 0 && _texFloor.Id > 0 &&
+                  _texCeiling.Id > 0 && _texDoor.Id > 0 && _texDoorOpen.Id > 0;
+
+        if (!ok)
+            Console.Error.WriteLine("[DungeonRenderer] Une ou plusieurs textures n'ont pas pu être chargées.");
+
+        if (ok)
+        {
+            Raylib.SetTextureFilter(_texWall, TextureFilter.Bilinear);
+            Raylib.SetTextureFilter(_texFloor, TextureFilter.Bilinear);
+            Raylib.SetTextureFilter(_texCeiling, TextureFilter.Bilinear);
+            Raylib.SetTextureFilter(_texDoor, TextureFilter.Bilinear);
+            Raylib.SetTextureFilter(_texDoorOpen, TextureFilter.Bilinear);
+            Raylib.SetTextureWrap(_texWall, TextureWrap.Repeat);
+            Raylib.SetTextureWrap(_texFloor, TextureWrap.Repeat);
+            Raylib.SetTextureWrap(_texCeiling, TextureWrap.Repeat);
+        }
+
+        _texLoaded = ok;
+    }
+
+    private static Texture2D LoadTex(string? path)
+    {
+        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+        {
+            Console.Error.WriteLine($"[DungeonRenderer] Texture introuvable : {path}");
+            return default;
+        }
+        return Raylib.LoadTexture(path);
+    }
 
     // =========================================================================
     // Quad texturé via rlgl  (équivalent du setPolyToPoly Kotlin)
@@ -172,7 +200,12 @@ public static class DungeonRenderer
 
         if (_texLoaded)
         {
-            var tex = tile.Tag == TileTag.Door ? _texDoor : _texWall;
+            var tex = tile.Tag switch
+            {
+                TileTag.Door => _texDoor,
+                TileTag.DoorOpen => _texDoorOpen,
+                _ => _texWall
+            };
             Raylib.DrawTexturePro(tex,
                 new Rectangle(0, 0, tex.Width, tex.Height),
                 new Rectangle(x, y, w, h),
@@ -557,6 +590,19 @@ public static class DungeonRenderer
             var frontTint = _texLoaded ? tint : Raylib.ColorBrightness(FrontColor(cell.Tile), dim);
             DrawFrontWall(sq, cell.Tile, frontTint);
         }
+        else if (cell.Tile.Tag == TileTag.DoorOpen)
+        {
+            // Porte ouverte : on voit à travers + texture porte ouverte en fond
+            var floorTint = _texLoaded ? tint : Raylib.ColorBrightness(FloorCol, dim);
+            var ceilTint = _texLoaded ? tint : Raylib.ColorBrightness(CeilingCol, dim);
+            DrawFloor(sq, floorTint);
+            DrawCeiling(sq, ceilTint);
+            if (_texLoaded)
+            {
+                var frontTint = Raylib.ColorBrightness(tint, -0.3f); // légèrement sombre
+                DrawFrontWall(sq, cell.Tile, frontTint);
+            }
+        }
         else
         {
             var floorTint = _texLoaded ? tint : Raylib.ColorBrightness(FloorCol,   dim);
@@ -668,10 +714,11 @@ public static class DungeonRenderer
 
     private static Color FrontColor(Tile t) => t.Tag switch
     {
-        TileTag.Door       => DoorFront,
-        TileTag.StairsUp   => StairsColor,
+        TileTag.Door => DoorFront,
+        TileTag.DoorOpen => DoorFront,
+        TileTag.StairsUp => StairsColor,
         TileTag.StairsDown => StairsColor,
-        _                  => WallFront
+        _ => WallFront
     };
 
     private static Color SideColor(Tile t) => t.Tag == TileTag.Door ? DoorSide : WallSide;

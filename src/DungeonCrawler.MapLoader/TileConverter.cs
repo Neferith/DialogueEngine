@@ -24,8 +24,8 @@ public static class TileConverter
         {
             IsSolid   = isSolid,
             Tag       = tag,
-            Floor     = floorType,
-            Ceiling   = ceilType,
+            FloorSurface = floorType,
+            CeilingSurface   = ceilType,
             TextureId = def.SpriteIndex
         };
     }

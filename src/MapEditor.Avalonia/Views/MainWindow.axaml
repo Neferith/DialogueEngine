@@ -11,21 +11,32 @@
   <DockPanel>
 
     <!-- ── Menu ── -->
-    <Menu DockPanel.Dock="Top">
-      <MenuItem Header="_Fichier">
-        <MenuItem Header="_Nouvelle map…" Command="{Binding NewMapCommand}" />
-        <MenuItem Header="_Ouvrir…"       Command="{Binding OpenMapCommand}" />
-        <Separator />
-        <MenuItem Header="_Enregistrer"   Command="{Binding SaveMapCommand}" />
-        <MenuItem Header="Enregistrer _sous…" Command="{Binding SaveMapAsCommand}" />
-      </MenuItem>
-    </Menu>
+	  <Menu DockPanel.Dock="Top">
+		  <MenuItem Header="_Fichier">
+			  <MenuItem Header="_Ouvrir projet…" Command="{Binding OpenProjectCommand}" />
+			  <Separator />
+			  <MenuItem Header="_Nouvelle map…"  Command="{Binding NewMapCommand}" />
+			  <MenuItem Header="_Ouvrir map…"    Command="{Binding OpenMapCommand}" />
+			  <Separator />
+			  <MenuItem Header="_Enregistrer"        Command="{Binding SaveMapCommand}" />
+			  <MenuItem Header="Enregistrer _sous…"  Command="{Binding SaveMapAsCommand}" />
+		  </MenuItem>
+		  <MenuItem Header="_Biome">
+			  <MenuItem Header="_Nouveau biome…" Command="{Binding NewBiomeCommand}" />
+		  </MenuItem>
+	  </Menu>
 
     <!-- ── Toolbar ── -->
-    <Border DockPanel.Dock="Top" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="6,4">
-      <StackPanel Orientation="Horizontal" Spacing="4">
+	  <Border DockPanel.Dock="Top" BorderBrush="#333" BorderThickness="0,0,0,1" Padding="6,4">
+	    <StackPanel Orientation="Horizontal" Spacing="4">
 
-        <TextBlock Text="Outil :" VerticalAlignment="Center" Margin="0,0,6,0" />
+		    <TextBlock Text="{Binding ProjectName}" FontWeight="SemiBold"
+						 VerticalAlignment="Center" Margin="0,0,12,0"
+						 Foreground="#AAA" />
+
+		    <Separator Width="1" Background="#555" Margin="4,0" />
+
+		    <TextBlock Text="Outil :" VerticalAlignment="Center" />
 
         <ToggleButton Content="🖌 Tile"
                       IsChecked="{Binding IsPaintTileActive, Mode=OneWay}"
@@ -156,33 +167,32 @@
           <TextBlock Text="{Binding SelectionLabel}"
                      FontWeight="SemiBold" IsVisible="{Binding HasSelection}" />
 
-          <!-- ── Tile properties ── -->
-          <StackPanel IsVisible="{Binding ShowTileSection}" Spacing="6">
-            <TextBlock Text="Type de tile :" FontSize="11" Foreground="#AAA" />
-            <TextBlock Text="{Binding TileTypeName}" />
+		    <!-- ── Tile properties ── -->
+		    <StackPanel IsVisible="{Binding ShowTileSection}" Spacing="6">
+			    <TextBlock Text="Type de tile :" FontSize="11" Foreground="#AAA" />
+			    <TextBlock Text="{Binding TileTypeName}" />
 
-            <CheckBox IsChecked="{Binding TileWalkable}" Content="Walkable" />
+			    <CheckBox IsChecked="{Binding TileWalkable}" Content="Walkable" />
 
-            <Expander Header="Transition" IsExpanded="{Binding HasTransition}">
-              <StackPanel Spacing="4" Margin="0,4,0,0">
-                <CheckBox IsChecked="{Binding HasTransition}" Content="Activer" />
-                <TextBlock Text="Map cible :" FontSize="11" />
-                <TextBox Text="{Binding TransitionTargetMapId}" Watermark="id_de_la_map" />
-                <TextBlock Text="Position cible (X, Y) :" FontSize="11" />
-                <Grid ColumnDefinitions="*,8,*">
-                  <TextBox Grid.Column="0" Text="{Binding TransitionTargetX}" Watermark="X" />
-                  <TextBox Grid.Column="2" Text="{Binding TransitionTargetY}" Watermark="Y" />
-                </Grid>
-                <TextBlock Text="Orientation :" FontSize="11" />
-                <ComboBox ItemsSource="{Binding Orientations}"
-                          SelectedItem="{Binding TransitionOrientation}"
-                          HorizontalAlignment="Stretch" />
-              </StackPanel>
-            </Expander>
+			    <CheckBox IsChecked="{Binding HasTransition}" Content="Transition vers une autre map" />
 
-            <Button Content="Appliquer" Command="{Binding ApplyTilePropertiesCommand}"
-                    HorizontalAlignment="Stretch" />
-          </StackPanel>
+			    <StackPanel IsVisible="{Binding HasTransition}" Spacing="4" Margin="0,4,0,0">
+				    <TextBlock Text="Map cible :" FontSize="11" />
+				    <TextBox Text="{Binding TransitionTargetMapId}" Watermark="id_de_la_map" />
+				    <TextBlock Text="Position cible (X, Y) :" FontSize="11" />
+				    <Grid ColumnDefinitions="*,8,*">
+					    <TextBox Grid.Column="0" Text="{Binding TransitionTargetX}" Watermark="X" />	
+					    <TextBox Grid.Column="2" Text="{Binding TransitionTargetY}" Watermark="Y" />
+				    </Grid>
+				    <TextBlock Text="Orientation :" FontSize="11" />
+				    <ComboBox ItemsSource="{Binding Orientations}"
+							      SelectedItem="{Binding TransitionOrientation}"
+							      HorizontalAlignment="Stretch" />
+			    </StackPanel>
+
+			    <Button Content="Appliquer" Command="{Binding ApplyTilePropertiesCommand}"
+						    HorizontalAlignment="Stretch" />
+		    </StackPanel>
 
           <!-- ── Entity properties ── -->
           <StackPanel IsVisible="{Binding ShowEntitySection}" Spacing="6">

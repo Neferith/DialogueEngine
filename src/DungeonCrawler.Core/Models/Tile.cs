@@ -1,6 +1,6 @@
 namespace DungeonCrawler.Core.Models;
 
-public enum TileTag    { None, Door, StairsUp, StairsDown, Trigger, LevelExit }
+public enum TileTag    { None, Door, DoorOpen, StairsUp, StairsDown, Trigger, LevelExit }
 public enum FloorType  { Stone, Dirt, Water, Lava }
 public enum CeilingType { Stone, Open }
 
@@ -26,4 +26,6 @@ public class Tile
     public static Tile Door(int textureId = 2)    => new() { IsSolid = true,  Tag = TileTag.Door,       TextureId = textureId };
     public static Tile StairsUp(int textureId = 3)   => new() { IsSolid = false, Tag = TileTag.StairsUp,   TextureId = textureId };
     public static Tile StairsDown(int textureId = 4) => new() { IsSolid = false, Tag = TileTag.StairsDown, TextureId = textureId };
+
+    public static Tile DoorOpen(int textureId = 5) => new() { IsSolid = false, Tag = TileTag.DoorOpen, TextureId = textureId };
 }
