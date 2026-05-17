@@ -71,6 +71,30 @@
       },
       "tileTypeId": "STONE_FLOOR",
       "walkable": true
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 1
+      },
+      "tileTypeId": "STONE_FLOOR",
+      "walkable": true
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 0
+      },
+      "tileTypeId": "STONE_DOOR",
+      "walkable": false,
+      "transition": {
+        "targetMapId": "the_cells",
+        "targetPosition": {
+          "x": 4,
+          "y": 11
+        },
+        "targetOrientation": "NORTH"
+      }
     }
   ],
   "entities": []

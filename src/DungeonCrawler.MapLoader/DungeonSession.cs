@@ -68,7 +68,9 @@ public class DungeonSession
 
     private void CheckTransition()
     {
+        Console.WriteLine($"[CheckTransition] pos={Runner.Party.Position}");
         var transition = CurrentMap.GetTransitionAt(Runner.Party.Position);
+        Console.WriteLine($"[CheckTransition] transition={transition?.TargetMapId ?? "null"}");
         if (transition == null) return;
 
         var targetPath = Path.Combine(_mapsPath, $"{transition.TargetMapId}.map.json");

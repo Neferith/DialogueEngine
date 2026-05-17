@@ -115,8 +115,14 @@ public partial class EditorViewModel : ObservableObject
         ActiveProject = project;
         ProjectName = project.Name;
         LoadModulesFromProject(project);
+
+        var mapPaths = ScanMaps(project);
+        Properties.Initialize(_serializer, mapPaths);
+
         Properties.Clear();
         MapGrid = null;
+        SaveMapCommand.NotifyCanExecuteChanged();
+        SaveMapAsCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(HasProject))]
@@ -205,6 +211,8 @@ public partial class EditorViewModel : ObservableObject
         if (_currentFilePath == null) { await SaveMapAs(); return; }
         _serializer.Save(MapGrid!.MapFile, _currentFilePath);
         StatusText = $"Sauvegardé : {Path.GetFileName(_currentFilePath)}.";
+        if (ActiveProject != null)
+            Properties.Initialize(_serializer, ScanMaps(ActiveProject));
     }
 
     [RelayCommand(CanExecute = nameof(HasOpenMap))]
@@ -215,6 +223,8 @@ public partial class EditorViewModel : ObservableObject
         _currentFilePath = path;
         _serializer.Save(MapGrid.MapFile, path);
         StatusText = $"Sauvegardé : {Path.GetFileName(path)}.";
+        if (ActiveProject != null)
+            Properties.Initialize(_serializer, ScanMaps(ActiveProject));
     }
 
     private bool HasOpenMap() => MapGrid != null;
@@ -281,5 +291,19 @@ public partial class EditorViewModel : ObservableObject
         var tileType = MapGrid.GetTileTypeAt(x, y) ?? MapGrid.DefaultTileType;
         var tileData = MapGrid.GetTileDataAt(x, y);
         Properties.ShowTile(x, y, tileType, tileData, MapGrid);
+    }
+
+    private Dictionary<string, string> ScanMaps(CampaignProject project)
+    {
+        var result = new Dictionary<string, string>();
+        if (!Directory.Exists(project.AbsoluteMapsPath)) return result;
+
+        foreach (var file in Directory.GetFiles(project.AbsoluteMapsPath, "*.map.json"))
+        {
+            var mapFile = _serializer.Load(file);
+            if (mapFile != null)
+                result[mapFile.Id] = file;
+        }
+        return result;
     }
 }
