@@ -174,21 +174,37 @@
 
 			    <CheckBox IsChecked="{Binding TileWalkable}" Content="Walkable" />
 
-			    <CheckBox IsChecked="{Binding HasTransition}" Content="Transition vers une autre map" />
+				<CheckBox IsChecked="{Binding HasTransition}" Content="Transition vers une autre map" />
 
-			    <StackPanel IsVisible="{Binding HasTransition}" Spacing="4" Margin="0,4,0,0">
-				    <TextBlock Text="Map cible :" FontSize="11" />
-				    <TextBox Text="{Binding TransitionTargetMapId}" Watermark="id_de_la_map" />
-				    <TextBlock Text="Position cible (X, Y) :" FontSize="11" />
-				    <Grid ColumnDefinitions="*,8,*">
-					    <TextBox Grid.Column="0" Text="{Binding TransitionTargetX}" Watermark="X" />	
-					    <TextBox Grid.Column="2" Text="{Binding TransitionTargetY}" Watermark="Y" />
-				    </Grid>
-				    <TextBlock Text="Orientation :" FontSize="11" />
-				    <ComboBox ItemsSource="{Binding Orientations}"
-							      SelectedItem="{Binding TransitionOrientation}"
-							      HorizontalAlignment="Stretch" />
-			    </StackPanel>
+				<StackPanel IsVisible="{Binding HasTransition}" Spacing="6" Margin="0,4,0,0">
+
+					<TextBlock Text="Map cible :" FontSize="11" Foreground="#AAA" />
+					<ComboBox ItemsSource="{Binding AvailableMaps}"
+							  SelectedItem="{Binding SelectedTargetMap}"
+							  HorizontalAlignment="Stretch" />
+
+					<TextBlock Text="Position d'arrivée (X, Y) :" FontSize="11" Foreground="#AAA" />
+					<Grid ColumnDefinitions="*,8,*">
+						<TextBox Grid.Column="0" Text="{Binding TransitionArrivalX}" Watermark="X" />
+						<TextBox Grid.Column="2" Text="{Binding TransitionArrivalY}" Watermark="Y" />
+					</Grid>
+
+					<TextBlock Text="Orientation à l'arrivée :" FontSize="11" Foreground="#AAA" />
+					<ComboBox ItemsSource="{Binding Orientations}"
+							  SelectedItem="{Binding TransitionArrivalOrientation}"
+							  HorizontalAlignment="Stretch" />
+
+					<TextBlock Text="Orientation au retour :" FontSize="11" Foreground="#AAA" />
+					<ComboBox ItemsSource="{Binding Orientations}"
+							  SelectedItem="{Binding TransitionReturnOrientation}"
+							  HorizontalAlignment="Stretch" />
+
+					<Button Content="↩ Créer la transition de retour"
+        Command="{Binding CreateReturnTransitionCommand}"
+        HorizontalAlignment="Stretch"
+        IsVisible="{Binding HasTransition}" />
+
+				</StackPanel>
 
 			    <Button Content="Appliquer" Command="{Binding ApplyTilePropertiesCommand}"
 						    HorizontalAlignment="Stretch" />
