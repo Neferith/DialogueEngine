@@ -30,6 +30,7 @@ public partial class EditorViewModel : ObservableObject
     [ObservableProperty] private string _statusText = "Crée ou ouvre une map pour commencer.";
     [ObservableProperty] private CampaignProject? _activeProject;
     [ObservableProperty] private string _projectName = "Aucun projet";
+    [ObservableProperty] private MapBrowserViewModel? _mapBrowser;
 
     public ObservableCollection<ModuleDefinition>   Modules     { get; } = new();
     public ObservableCollection<TileTypeDefinition>   TileTypes   { get; } = new();
@@ -49,7 +50,10 @@ public partial class EditorViewModel : ObservableObject
         _loader     = loaderFactory.CreateModuleLoader();
         _dialog     = dialog;
 
-      //  LoadModules();
+        MapBrowser = new MapBrowserViewModel(
+          _serializer,
+          onOpen: summary => OpenMapFromSummary(summary),
+          onSelect: summary => Properties.ShowMapInfo(summary));
     }
 
     // ── Module loading ────────────────────────────────────────────────────────
@@ -118,6 +122,7 @@ public partial class EditorViewModel : ObservableObject
 
         var mapPaths = ScanMaps(project);
         Properties.Initialize(_serializer, mapPaths);
+        MapBrowser?.LoadFromProject(project.AbsoluteMapsPath);
 
         Properties.Clear();
         MapGrid = null;
@@ -212,7 +217,10 @@ public partial class EditorViewModel : ObservableObject
         _serializer.Save(MapGrid!.MapFile, _currentFilePath);
         StatusText = $"Sauvegardé : {Path.GetFileName(_currentFilePath)}.";
         if (ActiveProject != null)
+        {
             Properties.Initialize(_serializer, ScanMaps(ActiveProject));
+            MapBrowser?.Refresh(ActiveProject.AbsoluteMapsPath);
+        }
     }
 
     [RelayCommand(CanExecute = nameof(HasOpenMap))]
@@ -224,10 +232,26 @@ public partial class EditorViewModel : ObservableObject
         _serializer.Save(MapGrid.MapFile, path);
         StatusText = $"Sauvegardé : {Path.GetFileName(path)}.";
         if (ActiveProject != null)
+        {
             Properties.Initialize(_serializer, ScanMaps(ActiveProject));
+            MapBrowser?.Refresh(ActiveProject.AbsoluteMapsPath);
+        }
     }
 
     private bool HasOpenMap() => MapGrid != null;
+
+    private void OpenMapFromSummary(MapSummary summary)
+    {
+        var mapFile = _serializer.Load(summary.FilePath);
+        if (mapFile == null) { StatusText = $"Erreur : impossible de lire {summary.Id}."; return; }
+
+        var module = Modules.FirstOrDefault(m => m.Id == mapFile.ModuleId);
+        if (module == null) { StatusText = $"Module '{mapFile.ModuleId}' introuvable."; return; }
+
+        _currentFilePath = summary.FilePath;
+        OpenMap(mapFile, module);
+        StatusText = $"Map «{mapFile.Id}» ouverte.";
+    }
 
     // ── Canvas interaction (called by MapCanvasControl) ───────────────────────
 

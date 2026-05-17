@@ -45,6 +45,13 @@ public partial class PropertiesViewModel : ObservableObject
     [ObservableProperty] private string _entityTypeName = "";
     [ObservableProperty] private string _entityOrientation = "NORTH";
 
+    // ── Section map ───────────────────────────────────────────────────────────
+    [ObservableProperty] private bool _showMapSection;
+    [ObservableProperty] private string _mapId = "";
+    [ObservableProperty] private string _mapType = "";
+    [ObservableProperty] private string _mapModuleId = "";
+    [ObservableProperty] private string _mapSize = "";
+
     public ObservableCollection<PropertyEntryViewModel> EntityProperties { get; } = new();
     public string[] Orientations { get; } = ["NORTH", "EAST", "SOUTH", "WEST"];
 
@@ -58,6 +65,22 @@ public partial class PropertiesViewModel : ObservableObject
         AvailableMaps.Clear();
         foreach (var id in mapPaths.Keys.OrderBy(k => k))
             AvailableMaps.Add(id);
+    }
+
+ 
+
+    public void ShowMapInfo(MapSummary summary)
+    {
+        HasSelection = true;
+        SelectionLabel = $"Map : {summary.Id}";
+        ShowTileSection = false;
+        ShowEntitySection = false;
+        ShowMapSection = true;
+
+        MapId = summary.Id;
+        MapType = summary.MapType;
+        MapModuleId = summary.ModuleId;
+        MapSize = $"{summary.Width} × {summary.Height}";
     }
 
     // ── API publique ──────────────────────────────────────────────────────────
