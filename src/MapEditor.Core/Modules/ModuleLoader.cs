@@ -23,6 +23,8 @@ public class ModuleDefinition
 
     public TileTypeDefinition?   FindTileType(string id)   => TileTypes.FirstOrDefault(t => t.Id == id);
     public EntityTypeDefinition? FindEntityType(string id) => EntityTypes.FirstOrDefault(e => e.Id == id);
+
+    public ModuleTextures? Textures { get; set; }
 }
 
 public class ModuleLoader

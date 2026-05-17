@@ -54,6 +54,9 @@ public class MapFileLoader
         return BuildLoadedMap(mapFile, module);
     }
 
+    public ModuleDefinition? GetModule(string moduleId) =>
+    _moduleCache.TryGetValue(moduleId, out var m) ? m : null;
+
     // ── Conversion ────────────────────────────────────────────────────────────
 
     private LoadedMap BuildLoadedMap(MapFile mapFile, ModuleDefinition module)
@@ -131,4 +134,5 @@ public class MapFileLoader
             "WEST"  => Direction.West,
             _       => Direction.North
         };
+
 }

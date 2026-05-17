@@ -40,3 +40,16 @@ public class EntityTypeDefinition
     public string? Color        { get; set; }
     public List<PropertyDefinition> Properties { get; set; } = new();
 }
+
+/// <summary>
+/// Chemins des textures du biome, relatifs au dossier du module.
+/// Tous optionnels — si absent, le renderer utilise ses couleurs de fallback.
+/// </summary>
+public class ModuleTextures
+{
+    public string? Wall { get; set; }
+    public string? Floor { get; set; }
+    public string? Ceiling { get; set; }
+    public string? DoorClosed { get; set; }
+    public string? DoorOpen { get; set; }
+}

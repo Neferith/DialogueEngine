@@ -26,6 +26,12 @@ public class RaylibGameRunner
         Raylib.SetTargetFPS(60);
         DungeonRenderer.Init(assetsPath);
 
+        // Charger les textures du biome initial
+        DungeonRenderer.LoadTextureSet(_session.CurrentBiomeTextures);
+
+        // Recharger les textures à chaque transition
+        _session.MapChanged += textures => DungeonRenderer.LoadTextureSet(textures);
+
         _anim = new AnimationState();
         _currentView = _session.GetView();
 

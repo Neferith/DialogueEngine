@@ -102,5 +102,12 @@
         { "key": "healAmount", "type": "int", "default": "20" }
       ]
     }
-  ]
+  ],
+  "textures": {
+    "wall": "textures/cell_wall.png",
+    "floor": "textures/cell_floor.png",
+    "ceiling": "textures/cell_ceiling.png",
+    "doorClosed": "textures/draft_door_closed.png",
+    "doorOpen": "textures/draft_door_opened.png"
+  }
 }

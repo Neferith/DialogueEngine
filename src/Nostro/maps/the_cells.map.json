@@ -143,6 +143,22 @@
       },
       "tileTypeId": "STONE_FLOOR",
       "walkable": true
+    },
+    {
+      "position": {
+        "x": 4,
+        "y": 12
+      },
+      "tileTypeId": "STONE_DOOR",
+      "walkable": false,
+      "transition": {
+        "targetMapId": "level_3",
+        "targetPosition": {
+          "x": 4,
+          "y": 2
+        },
+        "targetOrientation": "SOUTH"
+      }
     }
   ],
   "entities": [

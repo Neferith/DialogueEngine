@@ -1,6 +1,6 @@
 {
-  "id": "stone_dungeon",
-  "name": "Stone Dungeon",
+  "id": "cave",
+  "name": "Cave",
   "spriteSize": 16,
   "tileTypes": [
     {
@@ -48,9 +48,9 @@
     }
   ],
   "textures": {
-    "wall": "textures/cell_wall.png",
-    "floor": "textures/cell_floor.png",
-    "ceiling": "textures/cell_ceiling.png",
+    "wall": "textures/cavern_wall_low.png",
+    "floor": "textures/cavern_wall_low.png",
+    "ceiling": "textures/cavern_wall_low.png",
     "doorClosed": "textures/draft_door_closed.png",
     "doorOpen": "textures/draft_door_opened.png"
   }

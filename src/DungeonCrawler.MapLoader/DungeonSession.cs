@@ -22,8 +22,10 @@ public class DungeonSession
     public DungeonRunner Runner { get; private set; }
     public TurnManager Turns { get; private set; }
 
+    public BiomeTextures? CurrentBiomeTextures { get; private set; }
+
     /// <summary>Déclenché quand une transition a changé la map courante.</summary>
-    public event Action? MapChanged;
+    public event Action<BiomeTextures?>? MapChanged;
 
     public DungeonSession(
         LoadedMap initialMap,
@@ -39,6 +41,11 @@ public class DungeonSession
         _loader = loader;
         _mapsPath = mapsPath;
         _modulesPath = modulesPath;
+
+        var initialModule = _loader.GetModule(initialMap.ModuleId);
+        CurrentBiomeTextures = initialModule != null
+            ? ModuleTexturesConverter.Convert(initialModule)
+            : null;
     }
 
     // ── API exposée au game loop ──────────────────────────────────────────────
@@ -93,7 +100,13 @@ public class DungeonSession
         Runner = newRunner;
         Turns = newTurns;
 
-        MapChanged?.Invoke();
+        CurrentMap = newMap;
+        Runner = newRunner;
+        Turns = newTurns;
+
+        var newModule = _loader.GetModule(newMap.ModuleId);
+        CurrentBiomeTextures = ModuleTexturesConverter.Convert(newModule ?? new());
+        MapChanged?.Invoke(CurrentBiomeTextures);
         Console.WriteLine($"[DungeonSession] Transition → {transition.TargetMapId}");
     }
 
