@@ -19,6 +19,10 @@ public partial class EditorViewModel : ObservableObject
     private readonly ModuleLoader  _loader;
     private readonly IDialogService _dialog;
 
+    private readonly RecentProjectsService _recentProjects = new();
+
+    public IReadOnlyList<RecentProject> RecentProjects => _recentProjects.Projects;
+
     private string? _currentFilePath;
 
     [ObservableProperty] private MapGridViewModel?   _mapGrid;
@@ -118,6 +122,8 @@ public partial class EditorViewModel : ObservableObject
 
         ActiveProject = project;
         ProjectName = project.Name;
+        _recentProjects.Add(project.Name, path);
+        OnPropertyChanged(nameof(RecentProjects));
         LoadModulesFromProject(project);
 
         var mapPaths = ScanMaps(project);
@@ -236,6 +242,38 @@ public partial class EditorViewModel : ObservableObject
             Properties.Initialize(_serializer, ScanMaps(ActiveProject));
             MapBrowser?.Refresh(ActiveProject.AbsoluteMapsPath);
         }
+    }
+
+    [RelayCommand]
+    private async Task OpenRecentProject(RecentProject recent)
+    {
+        if (!File.Exists(recent.Path))
+        {
+            _recentProjects.Remove(recent.Path);
+            OnPropertyChanged(nameof(RecentProjects));
+            StatusText = $"Introuvable : {recent.Path}";
+            return;
+        }
+
+        var project = _serializer.LoadProject(recent.Path);
+        if (project == null) { StatusText = "Erreur : impossible de lire le projet."; return; }
+
+        ActiveProject = project;
+        ProjectName = project.Name;
+        LoadModulesFromProject(project);
+
+        var mapPaths = ScanMaps(project);
+        Properties.Initialize(_serializer, mapPaths);
+        MapBrowser?.LoadFromProject(project.AbsoluteMapsPath);
+
+        _recentProjects.Add(project.Name, recent.Path);
+        OnPropertyChanged(nameof(RecentProjects));
+
+        Properties.Clear();
+        MapGrid = null;
+        SaveMapCommand.NotifyCanExecuteChanged();
+        SaveMapAsCommand.NotifyCanExecuteChanged();
+        StatusText = $"Projet «{project.Name}» ouvert.";
     }
 
     private bool HasOpenMap() => MapGrid != null;

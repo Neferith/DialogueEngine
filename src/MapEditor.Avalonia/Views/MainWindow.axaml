@@ -15,9 +15,14 @@
 	  <Menu DockPanel.Dock="Top">
 		  <MenuItem Header="_Fichier">
 			  <MenuItem Header="_Ouvrir projet…" Command="{Binding OpenProjectCommand}" />
+
+			  <MenuItem Header="Ouvrir _récent" x:Name="RecentProjectsMenu">
+				  <MenuItem Header="Chargement…" IsEnabled="false" />
+			  </MenuItem>
+
 			  <Separator />
-			  <MenuItem Header="_Nouvelle map…"  Command="{Binding NewMapCommand}" />
-			  <MenuItem Header="_Ouvrir map…"    Command="{Binding OpenMapCommand}" />
+			  <MenuItem Header="_Nouvelle map…"      Command="{Binding NewMapCommand}" />
+			  <MenuItem Header="_Ouvrir map…"        Command="{Binding OpenMapCommand}" />
 			  <Separator />
 			  <MenuItem Header="_Enregistrer"        Command="{Binding SaveMapCommand}" />
 			  <MenuItem Header="Enregistrer _sous…"  Command="{Binding SaveMapAsCommand}" />

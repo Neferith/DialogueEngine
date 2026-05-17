@@ -10,10 +10,53 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         AvaloniaXamlLoader.Load(this);
+        this.Loaded += OnLoaded;
 
+     /*   var mapList = this.FindControl<ListBox>("MapList");
+        if (mapList != null)
+            mapList.DoubleTapped += OnMapListDoubleTapped;
+
+        var recentMenu = this.FindControl<MenuItem>("RecentProjectsMenu");
+        if (recentMenu != null)
+            recentMenu.SubmenuOpened += OnRecentMenuOpened;*/
+    }
+
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
         var mapList = this.FindControl<ListBox>("MapList");
         if (mapList != null)
             mapList.DoubleTapped += OnMapListDoubleTapped;
+
+        var recentMenu = this.FindControl<MenuItem>("RecentProjectsMenu");
+        if (recentMenu != null)
+            recentMenu.SubmenuOpened += OnRecentMenuOpened;
+    }
+
+    private void OnRecentMenuOpened(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem menu) return;
+        if (DataContext is not EditorViewModel vm) return;
+
+        menu.Items.Clear();
+
+        var projects = vm.RecentProjects;
+        if (!projects.Any())
+        {
+            menu.Items.Add(new MenuItem
+            {
+                Header = "Aucun projet récent",
+                IsEnabled = false
+            });
+            return;
+        }
+
+        foreach (var recent in projects)
+        {
+            var item = new MenuItem { Header = $"{recent.Name}  —  {recent.Path}" };
+            var captured = recent;
+            item.Click += (_, _) => vm.OpenRecentProjectCommand.Execute(captured);
+            menu.Items.Add(item);
+        }
     }
 
     private void OnMapListDoubleTapped(object? sender, RoutedEventArgs e)
