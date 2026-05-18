@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonCrawler.MapLoader.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nostro", "src\Nostro\Nostro.csproj", "{B12314AC-CDD2-48AC-A382-CF1935381681}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DungeonCrawler.Characters", "src\DungeonCrawler.Characters\DungeonCrawler.Characters.csproj", "{0391981F-E5E5-484B-B341-742D7D6D36DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -199,6 +201,18 @@ Global
 		{B12314AC-CDD2-48AC-A382-CF1935381681}.Release|x64.Build.0 = Release|Any CPU
 		{B12314AC-CDD2-48AC-A382-CF1935381681}.Release|x86.ActiveCfg = Release|Any CPU
 		{B12314AC-CDD2-48AC-A382-CF1935381681}.Release|x86.Build.0 = Release|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Debug|x64.Build.0 = Debug|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Debug|x86.Build.0 = Debug|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Release|x64.ActiveCfg = Release|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Release|x64.Build.0 = Release|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Release|x86.ActiveCfg = Release|Any CPU
+		{0391981F-E5E5-484B-B341-742D7D6D36DD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -206,5 +220,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{DA7B351B-FC8A-4588-9195-99881A15F79F} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{B12314AC-CDD2-48AC-A382-CF1935381681} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{0391981F-E5E5-484B-B341-742D7D6D36DD} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal
