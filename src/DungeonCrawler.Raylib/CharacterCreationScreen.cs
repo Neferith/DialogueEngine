@@ -155,7 +155,8 @@ public class CharacterCreationScreen : IGameScreen
             loaded, runner, turns, loader,
             _config.MapsPath, _config.ModulesPath);
 
-        return new PlayingScreen(session, _config, _saveManager, _slotIndex, save.HeroName);
+        var activeSave = new ActiveSave(_saveManager, _slotIndex, save.HeroName);
+        return new PlayingScreen(session, _config, activeSave);
     }
 
     private static DungeonCrawler.Core.Models.Direction ParseDirection(string facing) =>

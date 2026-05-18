@@ -9,22 +9,16 @@ public class PlayingScreen : IGameScreen
 {
     private readonly DungeonSession _session;
     private readonly CampaignConfig _config;
+    private readonly ActiveSave _activeSave;
 
     private AnimationState _anim = new();
     private DungeonView _currentView = null!;
 
-    private readonly SaveManager _saveManager;
-    private readonly int _slotIndex;
-    private readonly string _heroName;
-
-    public PlayingScreen(DungeonSession session, CampaignConfig config,
-                     SaveManager saveManager, int slotIndex, string heroName)
+    public PlayingScreen(DungeonSession session, CampaignConfig config, ActiveSave activeSave)
     {
         _session = session;
         _config = config;
-        _saveManager = saveManager;
-        _slotIndex = slotIndex;
-        _heroName = heroName;
+        _activeSave = activeSave;
     }
 
     // ── IGameScreen ───────────────────────────────────────────────────────────
@@ -138,23 +132,22 @@ public class PlayingScreen : IGameScreen
     private void QuickSave()
     {
         var party = _session.Party;
-        var facing = party.Facing.ToString().ToUpperInvariant();
 
         var save = new SaveFile
         {
-            SlotName = $"Slot {_slotIndex + 1}",
-            HeroName = _heroName,
+            SlotName = $"Slot {_activeSave.SlotIndex + 1}",
+            HeroName = _activeSave.HeroName,
             Location = new LocationSave
             {
                 MapId = _session.CurrentMap.Map.Name,
                 X = party.Position.X,
                 Y = party.Position.Y,
-                Facing = facing
+                Facing = party.Facing.ToString().ToUpperInvariant()
             }
         };
 
-        _saveManager.Save(_slotIndex, save);
-        Console.WriteLine($"[Save] Sauvegardé : {_heroName} en {save.Location.MapId} ({party.Position.X},{party.Position.Y})");
+        _activeSave.Manager.Save(_activeSave.SlotIndex, save);
+        Console.WriteLine($"[Save] {_activeSave.HeroName} — {save.Location.MapId} ({party.Position.X},{party.Position.Y})");
     }
 
     // ── Layout ────────────────────────────────────────────────────────────────
