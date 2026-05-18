@@ -1,22 +1,32 @@
-# DialogueEngine
+# DialogueEngine2 *(nom temporaire)*
 
-Moteur de dialogue générique en C# .NET 8, découplé de tout moteur de jeu.  
-Conçu pour être embarqué dans un projet Godot, Avalonia, ou tout autre hôte .NET.
+Ensemble d'outils et de moteurs en C# .NET 8 pour créer des dungeon crawlers RPG style Might & Magic.  
+Inclut un moteur de dialogue, un moteur de donjon, un éditeur de maps visuel, et une campagne jouable (**Nostro**).
 
 ---
 
 ## Structure de la solution
 
 ```
-DialogueEngine/
-├── src/
-│   ├── DialogueEngine.Core/          Moteur pur — aucune dépendance UI
-│   ├── DialogueEngine.Serialization/ Lecture/écriture JSON des dialogues
-│   ├── DialogueEngine.Editor/        Éditeur de dialogues (Avalonia 11)
-│   ├── Sample1/                      Démo — conversation NES-style (statique)
-│   └── Sample2/                      Démo — jeu vue de dessus avec infiltration
-└── tests/
-    └── DialogueEngine.Core.Tests/    Tests unitaires (xUnit + FluentAssertions)
+src/
+├── DialogueEngine.Core/          Moteur de dialogue — aucune dépendance UI
+├── DialogueEngine.Serialization/ Lecture/écriture JSON des dialogues
+├── DialogueEngine.Editor/        Éditeur de dialogues (Avalonia 11)
+├── Sample1/                      Démo dialogue — conversation NES-style
+├── Sample2/                      Démo dialogue — jeu vue de dessus
+│
+├── DungeonCrawler.Core/          Moteur donjon pur (maps, party, entités, systèmes)
+├── DungeonCrawler.Raylib/        Renderer Raylib + système d'écrans + sauvegarde
+├── DungeonCrawler.MapLoader/     Pont éditeur ↔ moteur (chargement maps JSON)
+│
+├── MapEditor.Core/               Modèles de maps et modules (data, sérialisation)
+├── MapEditor.Avalonia/           Éditeur visuel de maps (Avalonia 11)
+│
+└── Nostro/                       Campagne jouable — donjon dark fantasy
+
+tests/
+├── DialogueEngine.Core.Tests/    Tests moteur dialogue (xUnit + FluentAssertions)
+└── DungeonCrawler.MapLoader.Tests/ Tests chargement de maps
 ```
 
 ---
@@ -31,13 +41,17 @@ DialogueEngine/
 ## Lancer les projets
 
 ```bash
+# Jeu (campagne Nostro)
+dotnet run --project src/Nostro
+
+# Éditeur de maps
+dotnet run --project src/MapEditor.Avalonia
+
 # Éditeur de dialogues
 dotnet run --project src/DialogueEngine.Editor
 
-# Sample 1 — conversation avec un garde
+# Démos dialogue
 dotnet run --project src/Sample1
-
-# Sample 2 — infiltration vue de dessus
 dotnet run --project src/Sample2
 
 # Tests
@@ -46,175 +60,92 @@ dotnet test
 
 ---
 
-## Architecture du moteur
+## Architecture
 
-### Modèle de données
-
-```
-DialogueFile
-└── nodes: Node[]          ← liste ordonnée
-
-Node
-├── id: string
-├── conditionKey: string?  ← script → bool, null = toujours vrai
-├── text: LocalizedText    ← string simple OU variantes conditionnelles
-├── consequenceKey: string?
-├── cancelConsequenceKey: string?
-└── responses: Response[]
-
-Response
-├── text: LocalizedText
-├── conditionKey: string?
-├── consequenceKey: string?
-└── nextNodeIds: string[]  ← liste ordonnée de candidats
-```
-
-### Résolution au runtime
-
-Le moteur parcourt `nodes[]` dans l'ordre et affiche **le premier dont la condition passe**.  
-Si aucun nœud ne passe, le dialogue se termine silencieusement.
-
-Pour `nextNodeIds[]`, même mécanique : le moteur prend le premier nœud cible dont la condition passe.  
-Vide = fin du dialogue.
-
-### Cycle de vie
+### Règle de dépendance
 
 ```
-Start(file, context)
-  → OnNodeEntered(ResolvedNode)   ← texte + réponses prêts à l'affichage
+DialogueEngine.Core
+    ↑
+DialogueEngine.Serialization
+    ↑
+DialogueEngine.Editor
 
-Select(index)
-  → exécute la conséquence de la réponse
-  → résout le prochain nœud
-  → OnNodeEntered  OU  OnDialogueEnd
+DungeonCrawler.Core          ← moteur pur, aucune dépendance externe
+    ↑               ↑
+DungeonCrawler.Raylib    DungeonCrawler.MapLoader ← référence aussi MapEditor.Core
+                              ↑
+MapEditor.Core           MapEditor.Avalonia
+    ↑
+Nostro  ←  tout assembler ici (Exe)
+```
 
-Cancel()
-  → exécute CancelConsequenceKey du nœud courant
-  → OnDialogueCancelled(nodeId)
+`DungeonCrawler.Core` et `MapEditor.Core` ne se connaissent pas.  
+`DungeonCrawler.MapLoader` fait le pont entre les deux mondes.  
+`Nostro` est le seul projet Exe du jeu — chaque campagne est son propre Exe.
+
+---
+
+## Moteur de donjon (DungeonCrawler.Core)
+
+- **`DungeonMap`** — grille sparse de tiles (`IsSolid`, `TileTag`, `TextureId`)
+- **`Party`** — position + orientation + membres
+- **`MovementSystem`** — déplacement case par case, collisions
+- **`TurnManager`** — séquencement party → entités, gestion interactions
+- **`ViewBuilder`** — snapshot engine-agnostic de ce que la party voit
+- **`EntitySystem`** — monstres, NPC, items sur la map
+- **`SaveFile` / `SaveManager`** — sauvegarde JSON par slot dans `%AppData%`
+
+---
+
+## Système d'écrans (DungeonCrawler.Raylib)
+
+Pattern `IGameScreen` : chaque écran implémente `OnEnter`, `Update`, `Draw`, `OnExit`.  
+`Update()` retourne le prochain écran (ou `null` pour rester).  
+`GameScreenRunner` gère la fenêtre Raylib et les transitions.
+
+```
+MainMenuScreen
+  └── SlotSelectScreen
+        ├── CharacterCreationScreen → PlayingScreen
+        └── (chargement)           → PlayingScreen
 ```
 
 ---
 
-## Format JSON d'un dialogue
+## Éditeur de maps (MapEditor.Avalonia)
 
-```json
-{
-  "id": "mon_dialogue",
-  "nodes": [
-    {
-      "id": "intro",
-      "conditionKey": "player_is_officer",
-      "text": "Bienvenue, {player.name}.",
-      "cancelConsequenceKey": "npc_annoyed",
-      "responses": [
-        {
-          "text": "[Charme] Vous semblez fatigué...",
-          "conditionKey": "has_charm",
-          "consequenceKey": "set_npc_charmed",
-          "nextNodeIds": ["npc_gives_pass"]
-        },
-        {
-          "text": "Je passe mon chemin.",
-          "nextNodeIds": []
-        }
-      ]
-    },
-    {
-      "id": "npc_gives_pass",
-      "text": "Tenez, voilà votre laissez-passer.",
-      "responses": [
-        { "text": "Merci.", "nextNodeIds": [] }
-      ]
-    }
-  ]
-}
-```
+- Ouvre un **projet campagne** (`.campaign.json`) qui pointe vers les dossiers `maps/` et `modules/`
+- Palette de tiles et d'entités par biome (module)
+- Canvas interactif : peindre, effacer, sélectionner
+- Panneau propriétés : walkable, transitions entre maps (avec création de la transition retour automatique)
+- Navigateur de maps avec double-clic pour ouvrir
+- Projets récents
 
-### Texte localisé (variantes conditionnelles)
+### Workflow maps
 
-```json
-"text": [
-  { "conditionKey": "player_female", "value": "Bienvenue, commandante {player.name}." },
-  { "value": "Bienvenue, commandant {player.name}." }
-]
-```
-
-La dernière variante sans `conditionKey` est le **fallback obligatoire**.
+1. Créer/ouvrir un projet campagne depuis l'éditeur
+2. Dessiner la map, poser les entités et les transitions
+3. Sauvegarder → le fichier `.map.json` va dans `Nostro/maps/`
+4. Rebuild Nostro → les maps sont copiées dans l'output
 
 ---
 
-## Intégration dans un projet
+## Moteur de dialogue (DialogueEngine.Core)
 
-### 1. Enregistrer les scripts
-
-```csharp
-var registry = new ScriptRegistry()
-    .Condition("player_is_officer", ctx => gameState.Rank == Rank.Officer)
-    .Condition("has_charm",         ctx => gameState.Skill == Skill.Charm)
-    .Consequence("set_npc_charmed", ctx => gameState.NpcEmotion = Emotion.Charmed)
-    .Consequence("unlock_door",     ctx => gameState.DoorOpen = true);
-```
-
-### 2. Implémenter le contexte
-
-```csharp
-public class MyContext : IDialogueContext
-{
-    public IVariableResolver Variables { get; }
-
-    public MyContext(GameState state)
-    {
-        Variables = new LambdaResolver(key => key switch
-        {
-            "player.name" => state.PlayerName,
-            _             => $"{{{key}}}"
-        });
-    }
-}
-```
-
-### 3. Démarrer un dialogue
-
-```csharp
-var runner = new DialogueRunner(registry);
-
-runner.OnNodeEntered      += node => ui.Show(node.Text, node.Responses);
-runner.OnDialogueEnd      += ()   => ui.HideDialogue();
-runner.OnDialogueCancelled += id  => ui.HideDialogue();
-
-var file = DialogueFileSerializer.Deserialize(json);
-runner.Start(file, new MyContext(gameState));
-
-// Quand le joueur choisit une réponse :
-runner.Select(responseIndex);
-```
+Moteur générique découplé de tout moteur de jeu.  
+Voir [README DialogueEngine](#) pour la documentation complète.
 
 ---
 
-## Éditeur de dialogues
+## Campagne Nostro
 
-Interface Avalonia permettant de créer et éditer des fichiers `.json` de dialogue.
+Dark fantasy dungeon crawler style Might & Magic 3.  
+Mouvement case par case, tour par tour, vue première personne.
 
-- Panel gauche : liste et ordre des nœuds
-- Panel droit : édition du nœud sélectionné (texte, conditions, conséquences, réponses)
-- Validation structurelle avant sauvegarde (références de nœuds, fallbacks)
-- `nextNodeIds` édités comme liste texte (un ID par ligne, ordre = priorité)
+**Assets** :
+- Police : MedievalSharp
+- Palette : brun cuir / or fané / noir profond / beige parchemin
+- Textures : pierre, sol, plafond, portes
 
----
-
-## Tests
-
-```
-DialogueEngine.Core.Tests
-├── Starts on first node
-├── Skips node when condition false
-├── Ends when no node passes
-├── Selects response and navigates
-├── Response with multiple nextNodeIds picks first passing
-├── Empty nextNodeIds ends dialogue
-├── Filters responses by condition
-├── Substitutes variables in text
-├── Cancel fires event with nodeId and executes consequence
-├── Cannot start while active
-└── Serialization roundtrip
-```
+**Config** : `src/Nostro/NostroConfig.cs`

@@ -1,119 +1,136 @@
-# Agenda — DialogueEngine
+# Agenda
 
 ---
 
 ## ✅ Fait
 
-### Moteur (DialogueEngine.Core)
-- [x] Modèle de données : `DialogueFile`, `Node`, `Response`, `LocalizedText`, `TextVariant`
-- [x] `DialogueRunner` — résolution conditionnelle des nœuds et des réponses
-- [x] `nextNodeIds[]` — liste ordonnée de candidats avec fallback conditionnel
-- [x] `ScriptRegistry` — conditions et conséquences enregistrées par clé
-- [x] `IDialogueContext` + `IVariableResolver` — substitution `{variable}` dans les textes
-- [x] Texte localisé — variantes conditionnelles avec fallback obligatoire
-- [x] Events : `OnNodeEntered`, `OnDialogueEnd`, `OnDialogueCancelled`
-- [x] `CancelConsequenceKey` par nœud — réaction à l'annulation localisée
+### DialogueEngine
+- [x] `DialogueEngine.Core` — moteur de dialogue complet
+- [x] `DialogueEngine.Serialization` — JSON (camelCase, LocalizedTextConverter)
+- [x] `DialogueEngine.Editor` — éditeur Avalonia (MVVM, factory-container)
+- [x] `Sample1` — conversation statique avec branches par rang
+- [x] `Sample2` — jeu vue de dessus, compétences, émotions NPC
+- [x] 10 tests unitaires (xUnit + FluentAssertions)
 
-### Sérialisation (DialogueEngine.Serialization)
-- [x] `DialogueFileSerializer` — lecture/écriture JSON (camelCase)
-- [x] `LocalizedTextConverter` — format union string | TextVariant[]
+### DungeonCrawler.Core
+- [x] `DungeonMap` — grille 2D de tiles (IsSolid, TileTag, TextureId)
+- [x] `Party` — position, orientation, membres
+- [x] `MovementSystem` — déplacement case par case, collisions
+- [x] `TurnManager` — séquencement party + entités, interactions
+- [x] `ViewBuilder` — snapshot engine-agnostic (DungeonView)
+- [x] `EntitySystem` — MonsterEntity, NpcEntity, ItemEntity + behaviors
+- [x] `SaveFile` / `SaveManager` — sauvegarde JSON par slot (%AppData%)
+- [x] `BiomeTextures` — record pour les chemins de textures par biome
 
-### Tests (DialogueEngine.Core.Tests)
-- [x] 10 tests couvrant les cas nominaux et limites du moteur
-- [x] Roundtrip de sérialisation
+### DungeonCrawler.Raylib
+- [x] `DungeonRenderer` — rendu 3D style M&M (murs, sol, plafond, portes, entités)
+- [x] Textures par biome (`LoadTextureSet`)
+- [x] Animations de déplacement (avancer, reculer, tourner, strafer)
+- [x] HUD (position, orientation, tour, members, prompt interaction)
+- [x] `IGameScreen` — interface machine à états
+- [x] `GameScreenRunner` — boucle Raylib + transitions d'écrans
+- [x] `PlayingScreen` — gameplay donjon (ex-RaylibGameRunner)
+- [x] `MainMenuScreen` — Nouvelle partie / Charger / Quitter
+- [x] `SlotSelectScreen` — sélection de slot (5 slots)
+- [x] `CharacterCreationScreen` — saisie du nom du héros
+- [x] `FantasyUI` — helpers dark fantasy (Button, Panel, TextInput, Title, Label)
+- [x] `CampaignConfig` + `RaylibColorScheme` — config par campagne
+- [x] `ActiveSave` — contexte de sauvegarde en cours de partie
+- [x] F5 → quicksave (position courante)
 
-### Éditeur (DialogueEngine.Editor)
-- [x] Architecture MVVM propre — un ViewModel par vue
-- [x] Pattern factory-container — `EditorContainer` implémente `INodeListFactory` + `INodeEditorFactory`
-- [x] Ouverture / sauvegarde / enregistrer sous
-- [x] Validation inline (IDs vides, références cassées)
-- [x] Édition nœuds : id, condition, conséquence, cancel, texte, réponses
-- [x] `nextNodeIds` édités comme liste texte (un ID par ligne)
-- [x] Ordonnancement des nœuds et des réponses (▲▼)
-- [x] Duplication de nœud
+### DungeonCrawler.MapLoader
+- [x] `MapFileLoader` — charge un `.map.json` + module → `DungeonMap`
+- [x] Flip Y coordonnées éditeur → moteur
+- [x] `LoadedMap` — résultat du chargement (map, transitions, entités, spawn)
+- [x] `DungeonSession` — gestion des transitions entre maps en cours de partie
+- [x] `ModuleTexturesConverter` — `ModuleDefinition` → `BiomeTextures`
+- [x] Tests unitaires (dimensions, tiles, spawn, transitions)
 
-### Sample1
-- [x] Conversation statique avec un garde
-- [x] Sélection de rang au démarrage (Civil, Soldat, Officier, Déserteur)
-- [x] Branches de dialogue différentes par rang (conditions sur les nœuds)
-- [x] Effet typewriter + curseur clignotant
-- [x] Écran de résultat selon les flags déclenchés
+### MapEditor.Core
+- [x] `MapFile`, `TileData`, `EntityPlacement`, `MapTransition`
+- [x] `ModuleDefinition`, `TileTypeDefinition`, `EntityTypeDefinition`
+- [x] `ModuleLoader` — scan dossier modules/
+- [x] `MapSerializer` — JSON camelCase
+- [x] `CampaignProject` — fichier projet `.campaign.json`
+- [x] `MapSummary` — résumé léger pour le navigateur
 
-### Sample2
-- [x] Vue de dessus — déplacement ZQSD / flèches
-- [x] Mur de partition avec ouverture (porte franchissable)
-- [x] Deux PNJ avec zones d'interaction
-- [x] Sélection de compétence (Charme, Intimidation, Bluff) → débloque des réponses
-- [x] Réaction émotionnelle de l'officier (Charmé, Apeuré, Convaincu)
-- [x] Dialogue post-laissez-passer contextuel selon l'émotion
-- [x] Garde conditionnel (ouvre la porte uniquement avec laissez-passer)
-- [x] Écran de fin avec recap de la compétence utilisée
+### MapEditor.Avalonia
+- [x] Ouverture de projet campagne (`.campaign.json`)
+- [x] Projets récents (stockés dans %AppData%)
+- [x] Palette tiles + entités par biome (onglets)
+- [x] Navigateur de maps (onglet Maps, double-clic pour ouvrir)
+- [x] Canvas interactif — peinture, effacement, sélection
+- [x] Panneau propriétés — tile (walkable, transition) + entité (orientation, props)
+- [x] Création de transition avec porte retour automatique
+- [x] Création de nouveau biome (dossier + module.json template)
+- [x] Nouveau module `stone_dungeon` avec 5 types de tiles + 4 entités
+
+### Nostro
+- [x] Campagne dark fantasy style M&M3
+- [x] `NostroConfig` — palette DA, police MedievalSharp, chemins
+- [x] Map `the_cells` + map `level_3` avec transition bidirectionnelle
+- [x] Module `stone_dungeon` + module `cave` (en cours)
+- [x] Pipeline complet : éditeur → JSON → MapLoader → jeu
 
 ---
 
-## 🔧 Corrections connues / dette technique
+## 🔧 Dette technique connue
 
-- [ ] **Éditeur** — texte localisé (variantes race/genre) non encore éditable dans l'UI
-- [ ] **Éditeur** — pas de prévisualisation du graphe de dialogue
-- [ ] **Sample2** — pas de sprite animé pour le joueur (direction non indiquée visuellement)
-- [ ] **Sample2** — le joueur peut se superposer visuellement aux PNJ (pas de collision NPC)
-- [ ] **Moteur** — pas de validation au chargement (références cassées détectées seulement à l'exécution)
-- [ ] **Moteur** — boucles de dialogue infinies possibles (détection optionnelle à ajouter)
+- [ ] `DialogueEngine.Editor` — texte localisé (variantes) non éditable dans l'UI
+- [ ] `MapEditor.Avalonia` — édition des propriétés d'un biome (via JSON uniquement)
+- [ ] `DungeonCrawler.Core` — entités depuis le JSON (NPC, items hardcodés dans Nostro)
+- [ ] `DungeonSession` — pas encore de `DungeonSession` multi-maps avec historique
+- [ ] `PlayingScreen` — pas de bouton Save dans l'UI (seulement F5)
+- [ ] `SlotSelectScreen` — pas de suppression de slot
+- [ ] `MapEditor.Avalonia` — PLAYER_SPAWN non unique (pas de validation)
+- [ ] Transitions — pas de gestion de l'état ouvert/fermé des portes entre sessions
 
 ---
 
-## 📋 Court terme
+## 📋 Court terme (Nostro)
 
-### Jeu shoot em up RPG (objectif principal)
-- [ ] Définir la structure des phases : création personnage → création vaisseau → pré-mission → mission
-- [ ] Implémenter la phase de création de personnage
-- [ ] Implémenter la phase de création de vaisseau
-- [ ] Hub inter-mission : carte de la base avec PNJ et lieux navigables
-- [ ] Intégrer le moteur de dialogue dans le hub
-- [ ] `CampaignState` — flags persistants entre les phases
+### Contenu
+- [ ] Dessiner les maps de la campagne Nostro
+- [ ] Module `cave` — textures et tiles spécifiques
+- [ ] Transitions testées sur plusieurs maps enchaînées
 
-### Moteur de dialogue
-- [ ] Validation au chargement (option `DialogueValidator`)
-- [ ] Support des boucles de dialogue délibérées (back-links documentés dans l'éditeur)
-- [ ] Historique de conversation accessible au runtime
+### Systèmes
+- [ ] Entités depuis le JSON (NPC, items via `EntityPlacement`)
+- [ ] Système de factions NPC
+- [ ] Branchement DialogueEngine sur les NPC
+- [ ] Persistance état du monde (portes ouvertes, items ramassés)
+
+### UI / UX
+- [ ] Bouton Save dans le panneau UI droit
+- [ ] Écran de pause (Escape)
+- [ ] Retour au menu depuis le jeu
+
+---
+
+## 🎯 Moyen terme
+
+### DungeonCrawler
+- [ ] Système de combat tour par tour
+- [ ] Inventaire de la party
+- [ ] Stats des personnages (HP, caractéristiques)
+- [ ] Effets de terrain (eau, lave, téléporteurs)
 
 ### Éditeur
-- [ ] Édition des variantes de texte localisé (mode simple ↔ variantes)
-- [ ] Indicateur visuel des nœuds avec références cassées
-- [ ] Raccourcis clavier (Ctrl+S, Ctrl+N, Ctrl+O)
+- [ ] Génération de squelette de projet campagne depuis l'éditeur
+- [ ] Zoom sur le canvas
+- [ ] Undo/Redo
+
+### Infrastructure
+- [ ] Renommage de la solution
+- [ ] CI/CD + NuGet pour les libs réutilisables
+- [ ] Documentation XML sur l'API publique
 
 ---
 
-## 🎯 Vision long terme
+## 🌟 Vision long terme
 
-### Shoot em up RPG
-- [ ] Phase mission : shoot em up horizontal (Godot 4 ou Avalonia Canvas)
-- [ ] Système d'armes et compétences vaisseau
-- [ ] Missions linéaires avec branchements selon les choix pré-mission
-- [ ] Debriefing avec récompenses et progression
-- [ ] Sauvegarde de campagne
-
-### Moteur de dialogue
-- [ ] Export vers format intermédiaire (pour Godot GDScript, Unity C#)
-- [ ] Support du scripting embarqué (expressions simples sans enregistrement externe)
-- [ ] Localisation multi-langues (i18n via clés de traduction)
-- [ ] Arbre de dialogue visuel dans l'éditeur (node editor style)
-- [ ] Système de portait/avatar de locuteur
-
-### Qualité
-- [ ] Tests d'intégration Sample1 et Sample2
-- [ ] Benchmark du moteur sur de grands graphes (1000+ nœuds)
-- [ ] Documentation XML complète sur toute l'API publique
-
----
-
-## 📝 Notes d'architecture
-
-**Règle de dépendance** : `Core` ← `Serialization` ← `Editor` / `Sample*`  
-Le `Core` n'a aucune dépendance externe (pas d'Avalonia, pas de Godot).
-
-**Pattern DI** : factory-container. Chaque classe déclare l'interface factory dont elle a besoin.  
-Le container du shell (ex : `EditorContainer`) les implémente toutes et passe `this` là où c'est nécessaire.
-
-**Scripts de condition/conséquence** : clés string enregistrées dans `ScriptRegistry`.  
-Le jeu fournit les lambdas, le moteur les appelle. Aucun couplage direct.
+- [ ] Port Godot 4 (remplacer DungeonCrawler.Raylib par un renderer Godot)
+- [ ] Multiples campagnes indépendantes utilisant le même moteur
+- [ ] Éditeur générant le squelette d'une campagne (`.csproj`, assets, config)
+- [ ] Système de scripting embarqué pour les conséquences de dialogue
+- [ ] Arbre de dialogue visuel dans DialogueEngine.Editor
