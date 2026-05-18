@@ -24,7 +24,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Assets\" />
     <Folder Include="modules\cave\textures\" />
   </ItemGroup>
 </Project>

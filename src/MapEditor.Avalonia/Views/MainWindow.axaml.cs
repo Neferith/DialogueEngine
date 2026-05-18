@@ -11,14 +11,6 @@ public partial class MainWindow : Window
     {
         AvaloniaXamlLoader.Load(this);
         this.Loaded += OnLoaded;
-
-     /*   var mapList = this.FindControl<ListBox>("MapList");
-        if (mapList != null)
-            mapList.DoubleTapped += OnMapListDoubleTapped;
-
-        var recentMenu = this.FindControl<MenuItem>("RecentProjectsMenu");
-        if (recentMenu != null)
-            recentMenu.SubmenuOpened += OnRecentMenuOpened;*/
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

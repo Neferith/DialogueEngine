@@ -1,21 +1,22 @@
-﻿using DungeonCrawler.Core;
+﻿/*using DungeonCrawler.Core;
 using DungeonCrawler.Core.Characters;
 using DungeonCrawler.Core.Entities;
-using DungeonCrawler.Core.Entities.Behaviors;
 using DungeonCrawler.Core.Models;
 using DungeonCrawler.Core.Systems;
 using DungeonCrawler.MapLoader;
 using DungeonCrawler.RaylibGame;
+using Nostro;
 
-// ── Chemins ───────────────────────────────────────────────────────────────────
+// ── Config ────────────────────────────────────────────────────────────────────
 
-var mapsPath = "maps";
-var modulesPath = "modules";
+var config = NostroConfig.Create();
 
 // ── Chargement de la map ──────────────────────────────────────────────────────
 
 var loader = new MapFileLoader();
-var loaded = loader.Load(Path.Combine(mapsPath, "the_cells.map.json"), modulesPath);
+var loaded = loader.Load(
+    Path.Combine(config.MapsPath, "the_cells.map.json"),
+    config.ModulesPath);
 
 // ── Party ─────────────────────────────────────────────────────────────────────
 
@@ -27,16 +28,26 @@ var party = new Party(
 party.TryAddMember(new PartyMember("Aria"));
 party.TryAddMember(new PartyMember("Borin"));
 
-// ── Entités (hardcodées en attendant le système d'entités) ────────────────────
-
-var entities = new EntitySystem();
-
 // ── Session ───────────────────────────────────────────────────────────────────
 
+var entities = new EntitySystem();
 var runner = new DungeonRunner(loaded.Map, party, entities);
 var turns = new TurnManager(runner, entities);
-var session = new DungeonSession(loaded, runner, turns, loader, mapsPath, modulesPath);
-    
+var session = new DungeonSession(loaded, runner, turns, loader,
+                                  config.MapsPath, config.ModulesPath);
+
 // ── Lancement ─────────────────────────────────────────────────────────────────
 
-new RaylibGameRunner(session).Run("Nostro");
+var playingScreen = new PlayingScreen(session, config);
+new GameScreenRunner(playingScreen, config).Run();*/
+
+using DungeonCrawler.Core;
+using DungeonCrawler.RaylibGame;
+using Nostro;
+
+var config = NostroConfig.Create();
+var saveManager = new SaveManager(config.SaveFolderName);
+
+new GameScreenRunner(
+    new MainMenuScreen(config, saveManager),
+    config).Run();
