@@ -4,6 +4,7 @@ using DungeonCrawler.Characters.Backgrounds;
 using DungeonCrawler.Characters.Creation;
 using DungeonCrawler.Characters.Models;
 using DungeonCrawler.Core.Characters;
+using DungeonCrawler.Core.Persist;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Systems;
 using DungeonCrawler.MapLoader;
@@ -389,14 +390,20 @@ public class CharacterCreationScreen : IGameScreen
                 Facing = "NORTH"
             }
         };
-
+        save.Party.Add(CharacterMapper.ToSaveData(character));
         _saveManager.Save(_slotIndex, save);
-        _nextScreen = BuildPlayingScreen(save);
+
+        var activeSave = new ActiveSave(
+            _saveManager, _slotIndex,
+            character.Description.Name.FullName,
+            new List<Character> { character });
+
+        _nextScreen = BuildPlayingScreen(save, activeSave);
     }
 
-    private IGameScreen BuildPlayingScreen(SaveFile save,
-        DungeonCrawler.MapLoader.LoadedMap? preloaded = null,
-        MapFileLoader? existingLoader = null)
+    private IGameScreen BuildPlayingScreen(SaveFile save, ActiveSave activeSave,
+    DungeonCrawler.MapLoader.LoadedMap? preloaded = null,
+    MapFileLoader? existingLoader = null)
     {
         var loader = existingLoader ?? new MapFileLoader();
         var loaded = preloaded ?? loader.Load(
@@ -407,7 +414,9 @@ public class CharacterCreationScreen : IGameScreen
         var facing = loaded.PlayerFacing;
 
         var party = new DungeonCrawler.Core.Characters.Party(spawn, facing, maxSize: 4);
-        party.TryAddMember(new DungeonCrawler.Core.Characters.PartyMember(save.HeroName));
+        foreach (var c in activeSave.Characters)
+            party.TryAddMember(new DungeonCrawler.Core.Characters.PartyMember(
+                c.Description.Name.FullName));
 
         var entities = new EntitySystem();
         var runner = new DungeonCrawler.Core.DungeonRunner(loaded.Map, party, entities);
@@ -415,7 +424,6 @@ public class CharacterCreationScreen : IGameScreen
         var session = new DungeonSession(loaded, runner, turns, loader,
                            _config.MapsPath, _config.ModulesPath);
 
-        return new PlayingScreen(session, _config,
-            new ActiveSave(_saveManager, _slotIndex, save.HeroName));
+        return new PlayingScreen(session, _config, activeSave);
     }
 }

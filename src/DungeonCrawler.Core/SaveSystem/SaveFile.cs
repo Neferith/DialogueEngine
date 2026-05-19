@@ -1,4 +1,4 @@
-﻿namespace DungeonCrawler.RaylibGame;
+﻿namespace DungeonCrawler.Core.Persist;
 
 public class LocationSave
 {
@@ -16,6 +16,9 @@ public class SaveFile
     public string HeroName { get; set; } = "";
 
     public LocationSave Location { get; set; } = new();
+
+
+    public List<CharacterSaveData> Party { get; set; } = new();
 
     // Futurs champs ajoutés ici sans casser les anciennes saves :
     // public PartySave?  Party      { get; set; }

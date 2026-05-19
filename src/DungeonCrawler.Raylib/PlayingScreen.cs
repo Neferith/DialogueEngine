@@ -2,6 +2,7 @@
 using DungeonCrawler.Core.Rendering;
 using DungeonCrawler.MapLoader;
 using Raylib_cs;
+using DungeonCrawler.Core.Persist;
 
 namespace DungeonCrawler.RaylibGame;
 
@@ -145,6 +146,9 @@ public class PlayingScreen : IGameScreen
                 Facing = party.Facing.ToString().ToUpperInvariant()
             }
         };
+
+        foreach (var c in _activeSave.Characters)
+            save.Party.Add(CharacterMapper.ToSaveData(c));
 
         _activeSave.Manager.Save(_activeSave.SlotIndex, save);
         Console.WriteLine($"[Save] {_activeSave.HeroName} — {save.Location.MapId} ({party.Position.X},{party.Position.Y})");
