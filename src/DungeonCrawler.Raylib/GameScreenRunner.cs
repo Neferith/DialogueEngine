@@ -18,6 +18,7 @@ public class GameScreenRunner
         Raylib.SetConfigFlags(ConfigFlags.ResizableWindow);
         Raylib.InitWindow(width, height, _config.Title);
         Raylib.SetTargetFPS(60);
+        Raylib.SetExitKey(KeyboardKey.Null);
 
         _currentScreen.OnEnter();
 

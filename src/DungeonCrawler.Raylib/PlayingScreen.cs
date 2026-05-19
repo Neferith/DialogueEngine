@@ -12,6 +12,8 @@ public class PlayingScreen : IGameScreen
     private readonly CampaignConfig _config;
     private readonly ActiveSave _activeSave;
 
+    private IGameScreen? _nextScreen;
+
     private AnimationState _anim = new();
     private DungeonView _currentView = null!;
 
@@ -47,7 +49,9 @@ public class PlayingScreen : IGameScreen
             DungeonRenderer.RenderScene(_currentView, _session.Runner);
         }
 
-        return null; // pas de transition pour l'instant
+        var next = _nextScreen;
+        _nextScreen = null;
+        return next;
     }
 
     public void Draw(int screenWidth, int screenHeight)
@@ -98,6 +102,8 @@ public class PlayingScreen : IGameScreen
             action = PartyActionType.Interact;
         else if (Raylib.IsKeyPressed(KeyboardKey.Space))
             action = PartyActionType.Wait;
+        else if (Raylib.IsKeyPressed(KeyboardKey.I))
+            _nextScreen = new StatsScreen(_session, _config, _activeSave);
         else if (Raylib.IsKeyPressed(KeyboardKey.F5))
             QuickSave();
 
