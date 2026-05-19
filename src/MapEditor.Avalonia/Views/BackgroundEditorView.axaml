@@ -1,0 +1,67 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MapEditor.Avalonia.ViewModels.CharacterRules"
+			 x:Class="MapEditor.Avalonia.Views.CharacterRules.BackgroundEditorView"
+             x:DataType="vm:BackgroundEditorViewModel">
+
+  <ScrollViewer>
+    <StackPanel Spacing="8" Margin="8">
+
+      <!-- Identité -->
+      <TextBlock Text="Identité" Classes="SectionHeader"/>
+      <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto" >
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Id"          VerticalAlignment="Center"/>
+        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding Id}"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Nom"         VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Name}"        Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Type Id"     VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding TypeId}"      Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Description" VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding Description}"
+                   AcceptsReturn="True" Height="60" TextWrapping="Wrap" Margin="0,4,0,0"/>
+      </Grid>
+
+      <!-- Modificateurs -->
+		<!-- Modificateurs -->
+		<TextBlock Text="Modificateurs d'attributs" Classes="SectionHeader" Margin="0,8,0,0"/>
+		<WrapPanel Orientation="Horizontal">
+			<StackPanel Margin="0,0,16,8">
+				<TextBlock Text="Musculature" FontSize="11"/>
+				<NumericUpDown Value="{Binding Musculature}"
+							   Minimum="-10" Maximum="10" Increment="1"
+							   FormatString="0" Width="120"/>
+			</StackPanel>
+			<StackPanel Margin="0,0,16,8">
+				<TextBlock Text="Flexibilité" FontSize="11"/>
+				<NumericUpDown Value="{Binding Flexibility}"
+							   Minimum="-10" Maximum="10" Increment="1"
+							   FormatString="0" Width="120"/>
+			</StackPanel>
+			<StackPanel Margin="0,0,16,8">
+				<TextBlock Text="Intelligence" FontSize="11"/>
+				<NumericUpDown Value="{Binding Brain}"
+							   Minimum="-10" Maximum="10" Increment="1"
+							   FormatString="0" Width="120"/>
+			</StackPanel>
+			<StackPanel Margin="0,0,16,8">
+				<TextBlock Text="Vitalité" FontSize="11"/>
+				<NumericUpDown Value="{Binding Vitality}"
+							   Minimum="-10" Maximum="10" Increment="1"
+							   FormatString="0" Width="120"/>
+			</StackPanel>
+		</WrapPanel>
+
+      <!-- Skills de départ -->
+      <TextBlock Text="Skills de départ (IDs séparés par des virgules)"
+                 Classes="SectionHeader" Margin="0,8,0,0"/>
+      <TextBox Text="{Binding StartingSkillIds}" Watermark="ex: light_weapon, survival"/>
+
+      <!-- Requirement -->
+      <TextBlock Text="Tailles autorisées (vide = toutes)"
+                 Classes="SectionHeader" Margin="0,8,0,0"/>
+      <TextBox Text="{Binding AllowedSizes}"
+               Watermark="ex: Dwarf, Small, Medium"/>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

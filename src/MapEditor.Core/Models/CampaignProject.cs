@@ -8,6 +8,8 @@ public class CampaignProject
     public string ModulesPath { get; set; } = "modules";
     public string MapsPath { get; set; } = "maps";
 
+    public string CharacterRulesPath { get; set; } = "character_rules.json";
+
     // ── Runtime (non sérialisé) ───────────────────────────────────────────────
 
     [JsonIgnore]
@@ -28,4 +30,9 @@ public class CampaignProject
         ProjectDirectory != null
             ? Path.Combine(ProjectDirectory, MapsPath)
             : MapsPath;
+    
+    [JsonIgnore]
+    public string AbsoluteCharacterRulesPath =>
+    ProjectDirectory != null
+            ? Path.Combine(ProjectDirectory, CharacterRulesPath): CharacterRulesPath;
 }

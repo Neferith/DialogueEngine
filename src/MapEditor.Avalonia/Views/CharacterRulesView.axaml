@@ -1,0 +1,87 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MapEditor.Avalonia.ViewModels.CharacterRules"
+             xmlns:views="using:MapEditor.Avalonia.Views.CharacterRules"
+			 x:Class="MapEditor.Avalonia.Views.CharacterRules.CharacterRulesView"
+             x:DataType="vm:CharacterRulesViewModel">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Toolbar -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4" Margin="4">
+      <Button Content="💾 Sauvegarder" Command="{Binding SaveCommand}"/>
+    </StackPanel>
+
+    <TabControl Grid.Row="1">
+
+      <!-- Onglet Backgrounds -->
+      <TabItem Header="Backgrounds">
+        <Grid ColumnDefinitions="200,220,*">
+
+          <!-- Liste des types -->
+          <DockPanel Grid.Column="0" Margin="4">
+            <TextBlock DockPanel.Dock="Top" Text="Types" Classes="SectionHeader"/>
+			  <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,4,0,4">
+				  <Button Content="+ Type" Command="{Binding AddBackgroundTypeCommand}"/>
+				  <Button Content="- Type" Command="{Binding RemoveBackgroundTypeCommand}"/>
+			  </StackPanel>
+            <ListBox ItemsSource="{Binding BackgroundTypes}"
+                     SelectedItem="{Binding SelectedBackgroundType}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:BackgroundTypeViewModel">
+                  <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+
+          <!-- Type sélectionné -->
+          <DockPanel Grid.Column="1" Margin="4"
+                     IsVisible="{Binding SelectedBackgroundType,
+                                 Converter={x:Static ObjectConverters.IsNotNull}}">
+            <TextBlock DockPanel.Dock="Top" Text="Type sélectionné" Classes="SectionHeader"/>
+            <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,4,0,4"
+                        DataContext="{Binding SelectedBackgroundType}">
+              <TextBox Text="{Binding Id}"          Watermark="Id"/>
+              <TextBox Text="{Binding Name}"        Watermark="Nom"/>
+              <TextBox Text="{Binding Description}" Watermark="Description"
+                       AcceptsReturn="True" Height="48"/>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4"
+                        DataContext="{Binding SelectedBackgroundType}">
+              <Button Content="+ Background" Command="{Binding AddBackgroundCommand}"/>
+              <Button Content="- Background" Command="{Binding RemoveBackgroundCommand}"/>
+            </StackPanel>
+            <ListBox Margin="0,4,0,0"
+                     DataContext="{Binding SelectedBackgroundType}"
+                     ItemsSource="{Binding Backgrounds}"
+                     SelectedItem="{Binding SelectedBackground}">
+              <ListBox.ItemTemplate>
+                <DataTemplate DataType="vm:BackgroundEditorViewModel">
+                  <TextBlock Text="{Binding Name}"/>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+
+          <!-- Éditeur background -->
+          <ContentControl Grid.Column="2" Margin="4"
+                          Content="{Binding SelectedBackgroundType.SelectedBackground}">
+            <ContentControl.DataTemplates>
+              <DataTemplate DataType="vm:BackgroundEditorViewModel">
+                <views:BackgroundEditorView/>
+              </DataTemplate>
+            </ContentControl.DataTemplates>
+          </ContentControl>
+
+        </Grid>
+      </TabItem>
+
+      <!-- Onglet Skills -->
+      <TabItem Header="Skills">
+        <views:SkillsView DataContext="{Binding Skills}"/>
+      </TabItem>
+
+    </TabControl>
+  </Grid>
+</UserControl>

@@ -2,8 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MapEditor.Avalonia.ViewModels"
         xmlns:modules="using:MapEditor.Core.Modules"
-		xmlns:models="using:MapEditor.Core.Models"
+        xmlns:models="using:MapEditor.Core.Models"
         xmlns:controls="using:MapEditor.Avalonia.Controls"
+        xmlns:views="using:MapEditor.Avalonia.Views.CharacterRules"
         x:Class="MapEditor.Avalonia.Views.MainWindow"
         Title="Map Editor"
         Width="1280" Height="820"
@@ -29,6 +30,9 @@
 		  </MenuItem>
 		  <MenuItem Header="_Biome">
 			  <MenuItem Header="_Nouveau biome…" Command="{Binding NewBiomeCommand}" />
+		  </MenuItem>
+		  <MenuItem Header="_Personnages">
+			  <MenuItem Header="Règles de création…" Command="{Binding OpenCharacterRulesCommand}"/>
 		  </MenuItem>
 	  </Menu>
 
