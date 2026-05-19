@@ -8,7 +8,7 @@ public class CampaignProject
     public string ModulesPath { get; set; } = "modules";
     public string MapsPath { get; set; } = "maps";
 
-    public string CharacterRulesPath { get; set; } = "character_rules.json";
+    public string CharacterRulesPath { get; set; } = "rules/character_rules.json";
 
     // ── Runtime (non sérialisé) ───────────────────────────────────────────────
 

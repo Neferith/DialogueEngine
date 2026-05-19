@@ -22,6 +22,9 @@
     <Content Include="maps\**\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+	  <None Update="rules\character_rules.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="modules\cave\textures\" />
