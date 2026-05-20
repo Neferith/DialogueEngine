@@ -10,14 +10,16 @@ public class StatsScreen : IGameScreen
     private readonly DungeonSession _session;
     private readonly CampaignConfig _config;
     private readonly ActiveSave _activeSave;
+    private readonly GameServices _services;
 
     private int _selectedIndex = 0;
 
-    public StatsScreen(DungeonSession session, CampaignConfig config, ActiveSave activeSave)
+    public StatsScreen(DungeonSession session, CampaignConfig config, ActiveSave activeSave, GameServices services)
     {
         _session = session;
         _config = config;
         _activeSave = activeSave;
+        _services = services;
     }
 
     public void OnEnter() { }
@@ -27,7 +29,7 @@ public class StatsScreen : IGameScreen
     {
         if (Raylib.IsKeyPressed(KeyboardKey.Escape) ||
             Raylib.IsKeyPressed(KeyboardKey.I))
-            return new PlayingScreen(_session, _config, _activeSave);
+            return new PlayingScreen(_session, _config, _activeSave, _services);
 
         var count = _activeSave.Characters.Count;
         if (Raylib.IsKeyPressed(KeyboardKey.Up) || Raylib.IsKeyPressed(KeyboardKey.W))
