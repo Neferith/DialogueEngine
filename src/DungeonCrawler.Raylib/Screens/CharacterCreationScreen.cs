@@ -437,6 +437,6 @@ public class CharacterCreationScreen : IGameScreen
             _services.Events,        // ← EventSystem
             activeSave.World);       // ← WorldState
 
-        return new PlayingScreen(session, _config, activeSave);
+        return new PlayingScreen(session, _config, activeSave, _services);
     }
 }

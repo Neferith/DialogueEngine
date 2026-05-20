@@ -163,7 +163,7 @@ public class SlotSelectScreen : IGameScreen
             save.HeroName, characters,
             save.WorldState);
 
-        return new PlayingScreen(session, _config, activeSave);
+        return new PlayingScreen(session, _config, activeSave, _services);
     }
 
     private static Character CreateMinimalCharacter(string heroName)

@@ -12,24 +12,28 @@ public class PlayingScreen : IGameScreen
     private readonly DungeonSession _session;
     private readonly CampaignConfig _config;
     private readonly ActiveSave _activeSave;
+    private readonly GameServices _services;
 
     private readonly Queue<IGameAction> _pendingEffects = new();
     private string? _pendingNotification;
     private float _notificationTimer;
 
     private readonly DialogueOverlay _dialogueOverlay;
+    private readonly PauseOverlay _pauseOverlay;
     private IGameScreen? _nextScreen;
 
     private AnimationState _anim = new();
     private DungeonView _currentView = null!;
 
-    public PlayingScreen(DungeonSession session, CampaignConfig config, ActiveSave activeSave)
+    public PlayingScreen(DungeonSession session, CampaignConfig config, ActiveSave activeSave, GameServices services)
     {
         _session = session;
         _config = config;
         _activeSave = activeSave;
+        _services = services;
 
         _dialogueOverlay = new DialogueOverlay(_config);
+        _pauseOverlay = new PauseOverlay(_config, _activeSave, services);
     }
 
     // ── IGameScreen ───────────────────────────────────────────────────────────
@@ -57,9 +61,22 @@ public class PlayingScreen : IGameScreen
 
         _dialogueOverlay.Update(dt);
 
+        _pauseOverlay.Update();
+
+        if (_pauseOverlay.SaveRequested)
+            QuickSave();
+
+        if (_pauseOverlay.NextScreen != null)
+        {
+            _nextScreen = _pauseOverlay.NextScreen;
+            _pauseOverlay.ClearNextScreen();
+        }
+
+        bool paused = _pauseOverlay.IsActive;
+
         bool dialogueBlocking = _dialogueOverlay.IsActive && _dialogueOverlay.BlocksInput;
 
-        if (!_anim.IsPlaying && !dialogueBlocking)
+        if (!_anim.IsPlaying && !dialogueBlocking && !paused)
         {
             HandleInput();
             ProcessPendingEffects();
@@ -130,6 +147,7 @@ public class PlayingScreen : IGameScreen
                                 _session.Party, layout.HudRect);
 
         _dialogueOverlay.Draw(screenWidth, screenHeight);
+        _pauseOverlay.Draw(screenWidth, screenHeight);
 
         DrawNotification(screenWidth, screenHeight);
     }
@@ -193,9 +211,11 @@ public class PlayingScreen : IGameScreen
         else if (Raylib.IsKeyPressed(KeyboardKey.Space))
             action = PartyActionType.Wait;
         else if (Raylib.IsKeyPressed(KeyboardKey.I))
-            _nextScreen = new StatsScreen(_session, _config, _activeSave);
+            _nextScreen = new StatsScreen(_session, _config, _activeSave, _services);
         else if (Raylib.IsKeyPressed(KeyboardKey.F5))
             QuickSave();
+        else if (Raylib.IsKeyPressed(KeyboardKey.Escape))
+            _pauseOverlay.Toggle();
 
         if (!action.HasValue) return;
 
