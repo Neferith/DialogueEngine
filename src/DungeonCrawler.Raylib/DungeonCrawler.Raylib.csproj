@@ -7,6 +7,9 @@
 	  <ProjectReference Include="..\DungeonCrawler.Persistence\DungeonCrawler.Persistence.csproj" />
 	  <ProjectReference Include="..\DungeonCrawler.EventSystems\DungeonCrawler.EventSystems.csproj" />
 	  <ProjectReference Include="..\DungeonCrawler.MapLoader\DungeonCrawler.MapLoader.csproj" />
+
+	  <ProjectReference Include="..\DialogueEngine.Core\DialogueEngine.Core.csproj" />
+	  <ProjectReference Include="..\DialogueEngine.Serialization\DialogueEngine.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

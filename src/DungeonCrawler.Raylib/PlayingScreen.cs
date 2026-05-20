@@ -17,6 +17,7 @@ public class PlayingScreen : IGameScreen
     private string? _pendingNotification;
     private float _notificationTimer;
 
+    private readonly DialogueOverlay _dialogueOverlay;
     private IGameScreen? _nextScreen;
 
     private AnimationState _anim = new();
@@ -27,6 +28,8 @@ public class PlayingScreen : IGameScreen
         _session = session;
         _config = config;
         _activeSave = activeSave;
+
+        _dialogueOverlay = new DialogueOverlay(_config);
     }
 
     // ── IGameScreen ───────────────────────────────────────────────────────────
@@ -51,6 +54,8 @@ public class PlayingScreen : IGameScreen
         // Notification timer
         if (_notificationTimer > 0)
             _notificationTimer -= dt;
+
+        _dialogueOverlay.Update(dt);
 
         if (!_anim.IsPlaying)
         {
@@ -82,8 +87,7 @@ public class PlayingScreen : IGameScreen
                     ShowNotification(msg.Message);
                     break;
                 case StartDialogueAction dlg:
-                    // TODO : lancer overlay dialogue
-                    ShowNotification($"[Dialogue] {dlg.DialogueId}");
+                    _dialogueOverlay.Start(dlg.DialogueId);
                     break;
                 case GiveItemAction item:
                     // TODO : ajouter à l'inventaire
@@ -122,6 +126,8 @@ public class PlayingScreen : IGameScreen
         DrawUiPanel(layout.UiRect);
         DungeonRenderer.DrawHud(_currentView, _session.TurnNumber,
                                 _session.Party, layout.HudRect);
+
+        _dialogueOverlay.Draw(screenWidth, screenHeight);
 
         DrawNotification(screenWidth, screenHeight);
     }

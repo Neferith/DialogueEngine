@@ -1,0 +1,30 @@
+{
+  "id": "intro_dialogue",
+  "nodes": [
+    {
+      "id": "intro_1",
+      "text": "L'obscurité vous enveloppe. L'air est lourd de poussière et d'humidité. Quelque part dans les profondeurs, des chaînes résonnent contre la pierre froide.",
+      "responses": [
+        {
+          "text": " ",
+          "nextNodeIds": [ "intro_2" ]
+        }
+      ]
+    },
+    {
+      "id": "intro_2",
+      "text": "Vous ne savez plus depuis combien de temps vous êtes enfermé ici. Mais aujourd'hui, quelque chose a changé. La serrure de votre cellule est ouverte.",
+      "responses": [
+        {
+          "text": " ",
+          "nextNodeIds": [ "intro_3" ]
+        }
+      ]
+    },
+    {
+      "id": "intro_3",
+      "text": "C'est peut-être votre unique chance de fuir. Ou de trouver des réponses. Les deux, si la fortune vous sourit.",
+      "responses": []
+    }
+  ]
+}

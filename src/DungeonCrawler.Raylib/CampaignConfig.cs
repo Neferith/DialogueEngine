@@ -40,6 +40,8 @@ public class CampaignConfig
     /// <summary>Chemin vers character_rules.json (relatif au dossier de l'exe).</summary>
     public string CharacterRulesPath { get; init; } = "rules/character_rules.json";
 
+    public string DialoguesPath { get; init; } = "dialogues";
+
     /// <summary>Map chargée au démarrage d'une nouvelle partie.</summary>
     public string StartingMapId { get; init; } = "";
 

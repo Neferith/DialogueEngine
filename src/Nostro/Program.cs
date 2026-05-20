@@ -67,8 +67,10 @@ eventSystem.Register(new GameEvent
     Condition = new EventCondition { FlagNotSet = "intro_played" },
     Effects =
     [
-        new EventEffect { ScriptId = "SetFlag",      Params = new() { ["flagId"]    = "intro_played"    } },
-        new EventEffect { ScriptId = "ShowMessage",  Params = new() { ["message"]   = "Bienvenue dans les cellules..." } }
+        new EventEffect { ScriptId = "SetFlag",
+                          Params = new() { ["flagId"] = "intro_played" } },
+        new EventEffect { ScriptId = "StartDialogue",
+                          Params = new() { ["dialogueId"] = "intro_dialogue" } }
     ]
 });
 
