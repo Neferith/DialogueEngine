@@ -57,7 +57,9 @@ public class PlayingScreen : IGameScreen
 
         _dialogueOverlay.Update(dt);
 
-        if (!_anim.IsPlaying)
+        bool dialogueBlocking = _dialogueOverlay.IsActive && _dialogueOverlay.BlocksInput;
+
+        if (!_anim.IsPlaying && !dialogueBlocking)
         {
             HandleInput();
             ProcessPendingEffects();

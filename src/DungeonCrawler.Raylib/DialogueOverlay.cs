@@ -24,6 +24,9 @@ public class DialogueOverlay
     public bool IsActive => _state != DialogueOverlayState.Idle
                          && _state != DialogueOverlayState.Done;
 
+    /// <summary>Si true, bloque tous les inputs du jeu pendant le dialogue.</summary>
+    public bool BlocksInput { get; init; } = true;
+
     public DialogueOverlay(CampaignConfig config)
     {
         _config = config;
