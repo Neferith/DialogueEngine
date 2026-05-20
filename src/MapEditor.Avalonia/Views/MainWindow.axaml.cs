@@ -2,6 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using MapEditor.Avalonia.ViewModels;
+using MapEditor.Avalonia.ViewModels.Events;
+using MapEditor.Avalonia.Views.Events;
 
 namespace MapEditor.Avalonia.Views;
 
@@ -14,7 +16,7 @@ public partial class MainWindow : Window
 
         DataContextChanged += (_, _) =>
         {
-            if (DataContext is EditorViewModel vm)
+            if (DataContext is EditorViewModel vm) { 
                 vm.CharacterRulesOpenRequested += () =>
                 {
                     var window = new CharacterRulesWindow
@@ -23,6 +25,15 @@ public partial class MainWindow : Window
                     };
                     window.Show(this);
                 };
+
+            vm.EventsOpenRequested += () =>
+            {
+                if (vm.ActiveProject == null) return;
+                var eventsVm = new EventsViewModel(vm.ActiveProject.AbsoluteEventsPath);
+                var window = new EventsWindow { DataContext = eventsVm };
+                window.Show(this);
+            };
+            }
         };
     }
 

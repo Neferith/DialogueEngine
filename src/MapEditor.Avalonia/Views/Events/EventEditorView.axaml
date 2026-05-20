@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MapEditor.Avalonia.ViewModels.Events"
+             x:Class="MapEditor.Avalonia.Views.Events.EventEditorView"
+             x:DataType="vm:EventViewModel">
+
+  <ScrollViewer>
+    <StackPanel Spacing="8" Margin="8">
+
+      <!-- Identité -->
+      <TextBlock Text="Identité" Classes="SectionHeader"/>
+      <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Id"      VerticalAlignment="Center"/>
+        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding Id}"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Trigger" VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <ComboBox  Grid.Row="1" Grid.Column="1"
+                   ItemsSource="{Binding AvailableTriggers}"
+                   SelectedItem="{Binding Trigger}"
+                   Margin="0,4,0,0"/>
+      </Grid>
+
+      <!-- Contexte -->
+      <TextBlock Text="Contexte" Classes="SectionHeader" Margin="0,8,0,0"/>
+      <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Map Id"    VerticalAlignment="Center"/>
+        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding MapId}"    Watermark="ex: the_cells"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Entity Id" VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding EntityId}" Watermark="optionnel" Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Tile X"    VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding TileX}"    Watermark="optionnel" Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Tile Y"    VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding TileY}"    Watermark="optionnel" Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Radius"    VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding Radius}"   Watermark="optionnel" Margin="0,4,0,0"/>
+      </Grid>
+
+      <!-- Condition -->
+      <TextBlock Text="Condition" Classes="SectionHeader" Margin="0,8,0,0"/>
+      <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Flag absent"  VerticalAlignment="Center"/>
+        <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding FlagNotSet}"  Watermark="ex: intro_played"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Flag présent" VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding FlagSet}"     Watermark="optionnel" Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="NPC vivant"   VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding NpcAlive}"    Watermark="optionnel" Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="NPC mort"     VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding NpcNotAlive}" Watermark="optionnel" Margin="0,4,0,0"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Tour min"     VerticalAlignment="Center" Margin="0,4,0,0"/>
+        <TextBox   Grid.Row="4" Grid.Column="1" Text="{Binding MinTurn}"     Watermark="optionnel" Margin="0,4,0,0"/>
+      </Grid>
+
+      <!-- Effets -->
+      <TextBlock Text="Effets (scripts)" Classes="SectionHeader" Margin="0,8,0,0"/>
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <Button Content="+ Effet"  Command="{Binding AddEffectCommand}"/>
+        <Button Content="- Effet"  Command="{Binding RemoveEffectCommand}"/>
+      </StackPanel>
+
+      <ListBox ItemsSource="{Binding Effects}"
+               SelectedItem="{Binding SelectedEffect}"
+               MaxHeight="120">
+        <ListBox.ItemTemplate>
+          <DataTemplate DataType="vm:EventEffectViewModel">
+            <TextBlock Text="{Binding ScriptId}"/>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <!-- Éditeur effet sélectionné -->
+      <StackPanel IsVisible="{Binding SelectedEffect,
+                              Converter={x:Static ObjectConverters.IsNotNull}}"
+                  DataContext="{Binding SelectedEffect}"
+                  Spacing="4" Margin="0,4,0,0">
+        <TextBlock Text="Script Id" FontSize="11" Foreground="#AAA"/>
+        <TextBox Text="{Binding ScriptId}" Watermark="ex: SetFlag, StartDialogue"/>
+        <TextBlock Text="Paramètres (clé=valeur, un par ligne)" FontSize="11" Foreground="#AAA"/>
+        <TextBox Text="{Binding ParamsText}"
+                 AcceptsReturn="True" Height="80"
+                 Watermark="flagId=intro_played&#x0a;dialogueId=intro_dialogue"/>
+      </StackPanel>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

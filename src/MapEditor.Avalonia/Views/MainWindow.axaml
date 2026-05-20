@@ -34,6 +34,9 @@
 		  <MenuItem Header="_Personnages">
 			  <MenuItem Header="Règles de création…" Command="{Binding OpenCharacterRulesCommand}"/>
 		  </MenuItem>
+		  <MenuItem Header="_Events">
+			  <MenuItem Header="Éditeur d'events…" Command="{Binding OpenEventsCommand}"/>
+		  </MenuItem>
 	  </Menu>
 
     <!-- ── Toolbar ── -->

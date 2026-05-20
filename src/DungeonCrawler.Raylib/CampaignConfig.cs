@@ -42,6 +42,8 @@ public class CampaignConfig
 
     public string DialoguesPath { get; init; } = "dialogues";
 
+    public string EventsPath { get; init; } = "events";
+
     /// <summary>Map chargée au démarrage d'une nouvelle partie.</summary>
     public string StartingMapId { get; init; } = "";
 
