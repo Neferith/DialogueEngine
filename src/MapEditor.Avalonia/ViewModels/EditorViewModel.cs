@@ -50,6 +50,10 @@ public partial class EditorViewModel : ObservableObject
 
     public event Action? EventsOpenRequested;
 
+    public event Action? ItemsOpenRequested;
+
+
+
     public EditorViewModel(IMapSerializerFactory serFactory,
                            IModuleLoaderFactory  loaderFactory,
                            IDialogService        dialog)
@@ -310,6 +314,9 @@ public partial class EditorViewModel : ObservableObject
     {
         EventsOpenRequested?.Invoke();
     }
+
+    [RelayCommand(CanExecute = nameof(HasProject))]
+    private void OpenItems() => ItemsOpenRequested?.Invoke();
 
     // ── Canvas interaction (called by MapCanvasControl) ───────────────────────
 

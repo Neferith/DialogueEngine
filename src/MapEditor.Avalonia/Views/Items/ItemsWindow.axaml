@@ -1,0 +1,87 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MapEditor.Avalonia.ViewModels.Items"
+        x:Class="MapEditor.Avalonia.Views.Items.ItemsWindow"
+        x:DataType="vm:ItemsViewModel"
+        Title="Éditeur d'items"
+        Width="800" Height="560"
+        WindowStartupLocation="CenterOwner">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Toolbar -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4" Margin="4">
+      <Button Content="+ Item"        Command="{Binding AddItemCommand}"/>
+      <Button Content="- Item"        Command="{Binding RemoveItemCommand}"/>
+      <Separator/>
+      <Button Content="💾 Sauvegarder" Command="{Binding SaveCommand}"/>
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="220,*">
+
+      <!-- Liste -->
+      <DockPanel Grid.Column="0" Margin="4">
+        <TextBlock DockPanel.Dock="Top" Text="Items" Classes="SectionHeader"/>
+        <ListBox ItemsSource="{Binding Items}"
+                 SelectedItem="{Binding SelectedItem}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:ItemViewModel">
+              <StackPanel>
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Type}" FontSize="11" Foreground="#888"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <!-- Éditeur -->
+      <ScrollViewer Grid.Column="1"
+                    IsVisible="{Binding SelectedItem,
+                                Converter={x:Static ObjectConverters.IsNotNull}}">
+        <StackPanel Spacing="8" Margin="8"
+                    DataContext="{Binding SelectedItem}">
+
+          <TextBlock Text="Identité" Classes="SectionHeader"/>
+          <Grid ColumnDefinitions="100,*" RowDefinitions="Auto,Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Id"
+                       VerticalAlignment="Center"/>
+            <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding Id}"/>
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Titre"
+                       VerticalAlignment="Center" Margin="0,4,0,0"/>
+            <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Title}"
+                       Margin="0,4,0,0"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Description"
+                       VerticalAlignment="Center" Margin="0,4,0,0"/>
+            <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding Description}"
+                       AcceptsReturn="True" Height="60" Margin="0,4,0,0"/>
+          </Grid>
+
+          <TextBlock Text="Type" Classes="SectionHeader" Margin="0,8,0,0"/>
+          <ComboBox ItemsSource="{Binding AvailableTypes}"
+                    SelectedItem="{Binding Type}"
+                    HorizontalAlignment="Stretch"/>
+
+          <TextBlock Text="Stack" Classes="SectionHeader" Margin="0,8,0,0"/>
+          <StackPanel Orientation="Horizontal" Spacing="12">
+            <CheckBox IsChecked="{Binding Stackable}" Content="Stackable"/>
+            <StackPanel Orientation="Horizontal" Spacing="4"
+                        IsEnabled="{Binding Stackable}">
+              <TextBlock Text="Max :" VerticalAlignment="Center"/>
+              <NumericUpDown Value="{Binding MaxStack}"
+                             Minimum="1" Maximum="999"
+                             Increment="1" Width="100"
+                             FormatString="0"/>
+            </StackPanel>
+          </StackPanel>
+
+          <TextBlock Text="Sprite" Classes="SectionHeader" Margin="0,8,0,0"/>
+          <TextBox Text="{Binding SpritePath}"
+                   Watermark="ex: sprites/items/nostro_cross.png"/>
+
+        </StackPanel>
+      </ScrollViewer>
+
+    </Grid>
+  </Grid>
+</Window>

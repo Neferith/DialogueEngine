@@ -44,6 +44,8 @@ public class CampaignConfig
 
     public string EventsPath { get; init; } = "events";
 
+    public string ItemsPath { get; init; } = "items/items.json";
+
     /// <summary>Map chargée au démarrage d'une nouvelle partie.</summary>
     public string StartingMapId { get; init; } = "";
 
