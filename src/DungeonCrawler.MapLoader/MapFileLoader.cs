@@ -91,6 +91,23 @@ public class MapFileLoader
             var tile = TileConverter.Convert(def, walkableOverride: tileData.Walkable);
             dungeonMap.SetTile(tileData.Position.X, FlipY(tileData.Position.Y), tile);
 
+
+            var gameX = tileData.Position.X;
+            var gameY = FlipY(tileData.Position.Y);
+            dungeonMap.SetTile(gameX, gameY, tile);
+
+            // ── Items au sol ──────────────────────────────────────────────────────
+            if (tileData.Items.Count > 0)
+            {
+                var floorTile = dungeonMap.GetTile(gameX, gameY);
+                if (floorTile != null)
+                {
+                    foreach (var item in tileData.Items)
+                        floorTile.FloorInventory.Add(item.Id, item.Quantity);
+                }
+            }
+
+
             if (tileData.Transition != null)
                 transitions[new GridPosition(tileData.Position.X, FlipY(tileData.Position.Y))] = tileData.Transition;
         }

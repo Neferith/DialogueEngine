@@ -255,9 +255,41 @@
 
 				</StackPanel>
 
+				<!-- ── Items au sol ── -->
+				<StackPanel Spacing="6" Margin="0,8,0,0">
+					<TextBlock Text="Items au sol" FontSize="11" Foreground="#AAA"/>
+					<StackPanel Orientation="Horizontal" Spacing="4">
+						<Button Content="+ Item" Command="{Binding AddTileItemCommand}"/>
+						<Button Content="- Item" Command="{Binding RemoveTileItemCommand}"/>
+					</StackPanel>
+					<ListBox ItemsSource="{Binding TileItems}"
+							 SelectedItem="{Binding SelectedTileItem}"
+							 MaxHeight="120">
+						<ListBox.ItemTemplate>
+							<DataTemplate x:DataType="vm:TileItemEntryViewModel">
+								<Grid ColumnDefinitions="*,90">
+									<ComboBox Grid.Column="0"
+											  ItemsSource="{Binding AvailableItemIds}"
+											  SelectedItem="{Binding ItemId}"/>
+									<NumericUpDown Grid.Column="1"
+                                               Value="{Binding Quantity}"
+                                               Minimum="1"
+                                               Maximum="99"
+                                               FormatString="0"
+                                               Width="100"
+                                               HorizontalContentAlignment="Center"
+                                               FontSize="16"/>
+								</Grid>
+							</DataTemplate>
+						</ListBox.ItemTemplate>
+					</ListBox>
+				</StackPanel>
+
 			    <Button Content="Appliquer" Command="{Binding ApplyTilePropertiesCommand}"
 						    HorizontalAlignment="Stretch" />
 		    </StackPanel>
+
+			
 
           <!-- ── Entity properties ── -->
           <StackPanel IsVisible="{Binding ShowEntitySection}" Spacing="6">

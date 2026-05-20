@@ -136,6 +136,13 @@ public partial class EditorViewModel : ObservableObject
 
         var mapPaths = ScanMaps(project);
         Properties.Initialize(_serializer, mapPaths);
+
+        // Charger les IDs d'items disponibles
+        var itemsFile = MapEditor.Core.Items.ItemsSerializer.Load(
+            project.AbsoluteItemsPath);
+        Properties.InitializeItems(
+            itemsFile.Items.Select(i => i.Id).ToList());
+
         MapBrowser?.LoadFromProject(project.AbsoluteMapsPath);
         CharacterRules = new CharacterRulesViewModel(project.AbsoluteCharacterRulesPath);
 
@@ -281,6 +288,12 @@ public partial class EditorViewModel : ObservableObject
 
         var mapPaths = ScanMaps(project);
         Properties.Initialize(_serializer, mapPaths);
+
+        var itemsFile = MapEditor.Core.Items.ItemsSerializer.Load(
+    project.AbsoluteItemsPath);
+        Properties.InitializeItems(
+            itemsFile.Items.Select(i => i.Id).ToList());
+
         MapBrowser?.LoadFromProject(project.AbsoluteMapsPath);
         CharacterRules = new CharacterRulesViewModel(project.AbsoluteCharacterRulesPath);
 

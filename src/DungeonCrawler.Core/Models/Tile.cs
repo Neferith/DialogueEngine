@@ -13,6 +13,8 @@ public class Tile
     public FloorType   FloorSurface  { get; set; } = FloorType.Stone;
     public CeilingType CeilingSurface { get; set; } = CeilingType.Stone;
 
+    public Inventory FloorInventory { get; set; } = new();
+
     /// <summary>
     /// Texture / visual identifier. Interpretation is renderer-specific.
     /// 0 = default floor, 1 = default wall, etc.
