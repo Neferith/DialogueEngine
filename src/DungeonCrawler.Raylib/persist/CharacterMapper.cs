@@ -2,7 +2,7 @@
 using DungeonCrawler.Characters.Models;
 using DungeonCrawler.Characters.Skills;
 using DungeonCrawler.Core;
-using DungeonCrawler.Core.Persist;
+using DungeonCrawler.Persistence;
 
 namespace DungeonCrawler.RaylibGame;
 

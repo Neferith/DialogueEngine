@@ -2,7 +2,8 @@
 using DungeonCrawler.Core.Rendering;
 using DungeonCrawler.MapLoader;
 using Raylib_cs;
-using DungeonCrawler.Core.Persist;
+using DungeonCrawler.Persistence;
+using DungeonCrawler.EventSystems;
 
 namespace DungeonCrawler.RaylibGame;
 
@@ -11,6 +12,10 @@ public class PlayingScreen : IGameScreen
     private readonly DungeonSession _session;
     private readonly CampaignConfig _config;
     private readonly ActiveSave _activeSave;
+
+    private readonly Queue<IGameAction> _pendingEffects = new();
+    private string? _pendingNotification;
+    private float _notificationTimer;
 
     private IGameScreen? _nextScreen;
 
@@ -31,17 +36,27 @@ public class PlayingScreen : IGameScreen
         DungeonRenderer.Init(_config.AssetsPath);
         DungeonRenderer.LoadTextureSet(_session.CurrentBiomeTextures);
         _session.MapChanged += OnMapChanged;
+        _session.EventFired += OnEventFired;
 
         _anim = new AnimationState();
         _currentView = _session.GetView();
+
+        _session.NotifyMapEntered();
     }
 
     public IGameScreen? Update(float dt)
     {
         _anim.Update(dt);
 
+        // Notification timer
+        if (_notificationTimer > 0)
+            _notificationTimer -= dt;
+
         if (!_anim.IsPlaying)
+        {
             HandleInput();
+            ProcessPendingEffects();
+        }
 
         if (!_anim.IsPlaying)
         {
@@ -52,6 +67,47 @@ public class PlayingScreen : IGameScreen
         var next = _nextScreen;
         _nextScreen = null;
         return next;
+    }
+
+
+    private void ProcessPendingEffects()
+    {
+        while (_pendingEffects.Count > 0)
+        {
+            var action = _pendingEffects.Dequeue();
+
+            switch (action)
+            {
+                case ShowMessageAction msg:
+                    ShowNotification(msg.Message);
+                    break;
+                case StartDialogueAction dlg:
+                    // TODO : lancer overlay dialogue
+                    ShowNotification($"[Dialogue] {dlg.DialogueId}");
+                    break;
+                case GiveItemAction item:
+                    // TODO : ajouter à l'inventaire
+                    ShowNotification($"Vous obtenez : {item.ItemId} ×{item.Qty}");
+                    break;
+                case StartCombatAction combat:
+                    // TODO : lancer écran de combat
+                    ShowNotification($"[Combat] {combat.EncounterId}");
+                    break;
+                case RemoveEntityAction remove:
+                    // TODO : supprimer l'entité
+                    break;
+                case RecruitAction recruit:
+                    // TODO : recrutement
+                    ShowNotification($"[Recrutement] {recruit.CharacterId}");
+                    break;
+            }
+        }
+    }
+
+    private void ShowNotification(string message)
+    {
+        _pendingNotification = message;
+        _notificationTimer = 3f;
     }
 
     public void Draw(int screenWidth, int screenHeight)
@@ -66,11 +122,31 @@ public class PlayingScreen : IGameScreen
         DrawUiPanel(layout.UiRect);
         DungeonRenderer.DrawHud(_currentView, _session.TurnNumber,
                                 _session.Party, layout.HudRect);
+
+        DrawNotification(screenWidth, screenHeight);
+    }
+
+    private void DrawNotification(int w, int h)
+    {
+        if (_pendingNotification == null || _notificationTimer <= 0) return;
+
+        var colors = _config.Colors;
+        float alpha = Math.Min(1f, _notificationTimer);
+        var bg = new Color(0, 0, 0, (int)(180 * alpha));
+        var rect = new Rectangle(w * 0.2f, h * 0.75f, w * 0.6f, 48f);
+
+        Raylib.DrawRectangleRounded(rect, 0.3f, 8, bg);
+        var msgW = FantasyUI.MeasureText(_pendingNotification, 18f).X;
+        FantasyUI.Label(_pendingNotification,
+            rect.X + (rect.Width - msgW) / 2f,
+            rect.Y + 12f,
+            18f, colors);
     }
 
     public void OnExit()
     {
         _session.MapChanged -= OnMapChanged;
+        _session.EventFired -= OnEventFired;
         DungeonRenderer.Unload();
     }
 
@@ -78,6 +154,12 @@ public class PlayingScreen : IGameScreen
 
     private void OnMapChanged(DungeonCrawler.Core.Models.BiomeTextures? textures)
         => DungeonRenderer.LoadTextureSet(textures);
+
+    private void OnEventFired(GameEvent ev, IReadOnlyList<IGameAction> actions)
+    {
+        foreach (var action in actions)
+            _pendingEffects.Enqueue(action);
+    }
 
     // ── Input ─────────────────────────────────────────────────────────────────
 
@@ -139,7 +221,6 @@ public class PlayingScreen : IGameScreen
     private void QuickSave()
     {
         var party = _session.Party;
-
         var save = new SaveFile
         {
             SlotName = $"Slot {_activeSave.SlotIndex + 1}",
@@ -150,13 +231,15 @@ public class PlayingScreen : IGameScreen
                 X = party.Position.X,
                 Y = party.Position.Y,
                 Facing = party.Facing.ToString().ToUpperInvariant()
-            }
+            },
+            WorldState = _activeSave.World
         };
 
         foreach (var c in _activeSave.Characters)
             save.Party.Add(CharacterMapper.ToSaveData(c));
 
         _activeSave.Manager.Save(_activeSave.SlotIndex, save);
+        ShowNotification("Partie sauvegardée.");
         Console.WriteLine($"[Save] {_activeSave.HeroName} — {save.Location.MapId} ({party.Position.X},{party.Position.Y})");
     }
 

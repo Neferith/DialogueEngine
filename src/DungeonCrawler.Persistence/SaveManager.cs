@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace DungeonCrawler.Core.Persist;
+namespace DungeonCrawler.Persistence;
 
 public class SaveManager
 {
