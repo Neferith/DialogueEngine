@@ -16,7 +16,9 @@ src/
 ├── Sample2/                      Démo dialogue — jeu vue de dessus
 │
 ├── DungeonCrawler.Core/          Moteur donjon pur (maps, party, entités, systèmes)
+├── DungeonCrawler.Persistence/   DTOs de sauvegarde (SaveFile, WorldState, NpcState...)
 ├── DungeonCrawler.Characters/    Système RPG personnages (indépendant de Core)
+├── DungeonCrawler.EventSystems/  Système d'events, scripts, actions
 ├── DungeonCrawler.Raylib/        Renderer Raylib + système d'écrans + sauvegarde
 ├── DungeonCrawler.MapLoader/     Pont éditeur ↔ moteur (chargement maps JSON)
 │
@@ -73,20 +75,22 @@ DialogueEngine.Serialization
     ↑
 DialogueEngine.Editor
 
+DungeonCrawler.Persistence   ← DTOs purs, aucune dépendance domaine
 DungeonCrawler.Characters    ← RPG pur, aucune dépendance externe
-
 DungeonCrawler.Core          ← moteur pur, aucune dépendance externe
-    ↑               ↑
-DungeonCrawler.Raylib    DungeonCrawler.MapLoader ← référence aussi MapEditor.Core
-    ↑ (aussi Characters)
-MapEditor.Core           MapEditor.Avalonia
+    ↑
+DungeonCrawler.EventSystems  ← ref Core + Persistence + Characters
+    ↑
+DungeonCrawler.MapLoader     ← ref Core + MapEditor.Core + EventSystems
+DungeonCrawler.Raylib        ← ref tout sauf MapEditor.Avalonia
+    ↑
+MapEditor.Core    MapEditor.Avalonia
     ↑
 Nostro  ←  tout assembler ici (Exe)
 ```
 
-`DungeonCrawler.Core` et `MapEditor.Core` ne se connaissent pas.  
-`DungeonCrawler.Characters` est totalement indépendant — pas de référence à Core.  
-`DungeonCrawler.MapLoader` fait le pont entre les deux mondes.  
+`DungeonCrawler.Core`, `Persistence` et `Characters` ne se connaissent pas.  
+`EventSystems` fait le lien entre les trois.  
 `Nostro` est le seul projet Exe du jeu — chaque campagne est son propre Exe.
 
 ---
@@ -99,19 +103,35 @@ Nostro  ←  tout assembler ici (Exe)
 - **`TurnManager`** — séquencement party → entités, gestion interactions
 - **`ViewBuilder`** — snapshot engine-agnostic de ce que la party voit
 - **`EntitySystem`** — monstres, NPC, items sur la map
-- **`SaveFile` / `SaveManager`** — sauvegarde JSON par slot dans `%AppData%`
-- **`CharacterSaveData`** — DTO de sauvegarde du personnage (namespace `Core.Persist`)
+
+---
+
+## Système de sauvegarde (DungeonCrawler.Persistence)
+
+- **`SaveFile`** — version, slot, héros, position, party, WorldState
+- **`WorldState`** — Flags (one-shot events), Variables (compteurs), Npcs (états NPC)
+- **`SaveManager`** — 5 slots JSON dans `%AppData%/{campaign}/saves/`
 
 ---
 
 ## Système de personnages (DungeonCrawler.Characters)
 
-- **`CharacterAttribute` / `CharacterAttributes` / `AttributesModifier`** — 4 stats (Musculature, Flexibilité, Intelligence, Vitalité)
+- **`CharacterAttribute` / `CharacterAttributes` / `AttributesModifier`** — 4 stats
 - **Chaîne de création** : Genre → Taille → Poids → Sensibilité → Background (filtrage progressif)
 - **Stats dérivées** : MaxHp, QAm (attaque puissante), QAc (attaque critique), QDp (parade), QDe (esquive)
-- **`CharacterBuilder`** — accumule les choix, applique les modificateurs (avec variance aléatoire), construit le `Character`
-- **`Injury`** — blessures typées : Physical, Mental, Energy avec Severity (Minor/Moderate/Severe)
-- **`CharacterRules`** — chargé depuis `rules/character_rules.json` (backgrounds + skills de la campagne)
+- **`CharacterBuilder`** — accumule les choix, applique les modificateurs (avec variance aléatoire)
+- **`Injury`** — blessures typées : Physical, Mental, Energy avec Severity
+- **`CharacterRules`** — chargé depuis `rules/character_rules.json`
+
+---
+
+## Système d'events (DungeonCrawler.EventSystems)
+
+- **`IEventScript`** — use case C# avec paramètres typés configurables depuis le toolset
+- **`EventScriptContext`** — API complète : WorldState, actions immédiates, actions différées
+- **`EventScriptRegistry`** — scripts built-in + custom campagne
+- **`EventSystem`** — triggers : GameStart, MapEnter, TileEnter, TurnPassed, Interact, Proximity
+- **`IGameAction`** — actions différées traitées par PlayingScreen (StartDialogue, GiveItem, etc.)
 
 ---
 
@@ -130,33 +150,25 @@ MainMenuScreen
                                                   StatsScreen
 ```
 
-Raccourcis dans `PlayingScreen` : `F5` = quicksave, `I` = écran de stats.
+`PlayingScreen` : `F5` = quicksave, `I` = stats, dialogue overlay bloque les inputs.
 
 ---
 
 ## Éditeur de maps (MapEditor.Avalonia)
 
-- Ouvre un **projet campagne** (`.campaign.json`) qui pointe vers les dossiers `maps/`, `modules/` et `rules/`
+- Ouvre un **projet campagne** (`.campaign.json`)
 - Palette de tiles et d'entités par biome (module)
 - Canvas interactif : peindre, effacer, sélectionner
-- Panneau propriétés : walkable, transitions entre maps (avec création de la transition retour automatique)
-- Navigateur de maps avec double-clic pour ouvrir
-- Projets récents
+- Transitions entre maps avec création de la transition retour automatique
+- Navigateur de maps, projets récents
 - Menu **Personnages → Règles de création** : éditeur de backgrounds, types et skills
-
-### Workflow maps
-
-1. Créer/ouvrir un projet campagne depuis l'éditeur
-2. Dessiner la map, poser les entités et les transitions
-3. Sauvegarder → le fichier `.map.json` va dans `Nostro/maps/`
-4. Rebuild Nostro → les maps sont copiées dans l'output
 
 ---
 
 ## Moteur de dialogue (DialogueEngine.Core)
 
-Moteur générique découplé de tout moteur de jeu.  
-Voir [README DialogueEngine](#) pour la documentation complète.
+Moteur générique découplé de tout moteur de jeu.
+Utilisé dans le jeu via `DialogueOverlay` (overlay typewriter sur PlayingScreen).
 
 ---
 
@@ -171,4 +183,5 @@ Mouvement case par case, tour par tour, vue première personne.
 - Textures : pierre, sol, plafond, portes
 
 **Config** : `src/Nostro/NostroConfig.cs`  
-**Règles personnages** : `src/Nostro/rules/character_rules.json`
+**Règles personnages** : `src/Nostro/rules/character_rules.json`  
+**Dialogues** : `src/Nostro/dialogues/`

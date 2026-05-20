@@ -20,10 +20,14 @@
 - [x] `ViewBuilder` — snapshot engine-agnostic (DungeonView)
 - [x] `EntitySystem` — MonsterEntity, NpcEntity, ItemEntity + behaviors
 - [x] `BiomeTextures` — record pour les chemins de textures par biome
-- [x] `SaveFile` + `CharacterSaveData` + `InjurySaveData` (namespace `Core.Persist`)
-- [x] `SaveManager` — 5 slots, %AppData%
 
-### DungeonCrawler.Characters ← nouveau projet
+### DungeonCrawler.Persistence ← projet séparé (extrait de Core.Persist)
+- [x] `SaveFile`, `LocationSave`, `CharacterSaveData`, `InjurySaveData`
+- [x] `SaveManager` — 5 slots, %AppData%
+- [x] `NpcState` — Hostility, Affinity, IsAlive, IsRecruited, Flags
+- [x] `WorldState` — Flags (HashSet), Variables (Dict<string,int>), Npcs (Dict<string,NpcState>)
+
+### DungeonCrawler.Characters
 - [x] `CharacterAttribute`, `CharacterAttributes`, `AttributesModifier`
 - [x] `CharacterGender`, `CharacterSize`, `CharacterWeight`, `CharacterSensitivity`
 - [x] Chaîne de filtrage : Genre → Taille → Poids → Sensibilité
@@ -35,6 +39,13 @@
 - [x] `CharacterBuilder` — IsLastStep, IsComplete, Build()
 - [x] Tests : AttributeTests, CharacterStatsTests, CreationChainTests, CharacterBuilderTests
 
+### DungeonCrawler.EventSystems ← nouveau projet
+- [x] `GameEvent`, `EventCondition`, `EventEffect { ScriptId, Params }`
+- [x] `IEventScript`, `ScriptParameter`, `EventScriptContext` (API complète)
+- [x] `EventScriptRegistry` — built-ins : SetFlag, ClearFlag, SetVariable, IncrVariable, StartDialogue, ShowMessage, GiveItem, NpcSetHostility
+- [x] `IGameAction` + implémentations : StartDialogueAction, GiveItemAction, StartCombatAction, ShowMessageAction, RecruitAction, RemoveEntityAction
+- [x] `EventSystem` — triggers : GameStart, MapEnter, TileEnter, TurnPassed, Interact, Proximity
+
 ### DungeonCrawler.Raylib
 - [x] `DungeonRenderer` — rendu 3D style M&M (murs, sol, plafond, portes, entités)
 - [x] Textures par biome (`LoadTextureSet`)
@@ -43,21 +54,23 @@
 - [x] `IGameScreen` — interface machine à états
 - [x] `GameScreenRunner` — boucle Raylib + transitions d'écrans
 - [x] `Raylib.SetExitKey(KeyboardKey.Null)` — Escape géré par les écrans
-- [x] `PlayingScreen` — gameplay donjon, F5 quicksave, I → StatsScreen
+- [x] `GameServices(SaveManager, EventSystem, EventScriptRegistry)` — transite dans tous les écrans
+- [x] `PlayingScreen` — gameplay donjon, F5 quicksave, I → StatsScreen, input bloqué en dialogue
 - [x] `MainMenuScreen` — Nouvelle partie / Charger / Quitter
 - [x] `SlotSelectScreen` — sélection de slot (5 slots)
 - [x] `CharacterCreationScreen` — flow complet 6 étapes avec cartes sélectionnables
 - [x] `StatsScreen` — liste party + détail (attributs, combat, HP bar, compétences, blessures)
+- [x] `DialogueOverlay` — typewriter, BlocksInput, _justSkipped, TryAdvance()
 - [x] `FantasyUI` — Button, Panel, TextInput, Title, Label, SelectableCard, HandleTextInput
 - [x] `CampaignConfig` + `RaylibColorScheme` (record) — config par campagne
-- [x] `ActiveSave(SaveManager, SlotIndex, HeroName, List<Character>)` — contexte en cours de partie
+- [x] `ActiveSave(SaveManager, SlotIndex, HeroName, List<Character>, WorldState)` — contexte en cours de partie
 - [x] `CharacterMapper` — Character ↔ CharacterSaveData
 
 ### DungeonCrawler.MapLoader
 - [x] `MapFileLoader` — charge un `.map.json` + module → `DungeonMap`
 - [x] Flip Y coordonnées éditeur → moteur
 - [x] `LoadedMap` — résultat du chargement (map, transitions, entités, spawn)
-- [x] `DungeonSession` — gestion des transitions entre maps en cours de partie
+- [x] `DungeonSession` — transitions + EventSystem? + WorldState? + NotifyMapEntered()
 - [x] `ModuleTexturesConverter` — `ModuleDefinition` → `BiomeTextures`
 - [x] Tests unitaires (dimensions, tiles, spawn, transitions)
 
@@ -91,6 +104,9 @@
 - [x] Map `the_cells` + map `level_3` avec transition bidirectionnelle
 - [x] Module `stone_dungeon` + module `cave` (en cours)
 - [x] `rules/character_rules.json` — 2 types (Profession + Antécédent), 12 skills
+- [x] `dialogues/intro_dialogue.json` — narratif 3 nœuds
+- [x] Event intro (MapEnter the_cells, one-shot via flag intro_played)
+- [x] `GameServices` configuré dans `Program.cs`
 - [x] Pipeline complet : éditeur → JSON → MapLoader → jeu
 
 ---
@@ -106,9 +122,10 @@
 - [ ] `MapEditor.Avalonia` — PLAYER_SPAWN non unique (pas de validation)
 - [ ] Transitions — pas de gestion de l'état ouvert/fermé des portes entre sessions
 - [ ] Police pixelisée dans Raylib (charger à 256px dans `FantasyUI.Init`)
-- [ ] `DungeonCrawler.Core.Persist` → futur projet `DungeonCrawler.Persistence`
 - [ ] Erreurs tests `DungeonCrawler.MapLoader.Tests` (renommage CharacterAttribute)
 - [ ] Renommage de la solution (de DialogueEngine2)
+- [ ] Events chargés depuis JSON (toolset) — hardcodés dans Program.cs pour l'instant
+- [ ] Éditeur d'events dans MapEditor.Avalonia
 
 ---
 
@@ -124,11 +141,16 @@
 - [ ] Retour au menu depuis le jeu
 - [ ] Entités depuis le JSON (NPC, items via `EntityPlacement`)
 - [ ] Système de factions NPC
-- [ ] Branchement DialogueEngine sur les NPC
+- [ ] Branchement DialogueEngine sur les NPC (dialogue NPC avec portrait)
 - [ ] Persistance état du monde (portes ouvertes, items ramassés)
+- [ ] EventLoader — charger events depuis JSON
+- [ ] Item à ramasser (GiveItemAction complet)
+- [ ] Rencontre : combat / dialogue / recrutement
 
 ### UI / UX
 - [ ] Bouton Save dans le panneau UI droit
+- [ ] Dialogue NPC avec portrait et nom du locuteur
+- [ ] Dialogue avec membre de l'équipe
 
 ---
 
@@ -142,8 +164,11 @@
 - [ ] Compétences actives en combat
 - [ ] Leveling (XP, distribution de points)
 - [ ] Recrutement de membres dans l'équipe
+- [ ] Factions (hostilité par faction)
 
 ### Éditeur
+- [ ] Éditeur d'events (MapEditor.Avalonia)
+- [ ] EventLoader (JSON → EventSystem)
 - [ ] Génération de squelette de projet campagne depuis l'éditeur
 - [ ] Zoom sur le canvas
 - [ ] Undo/Redo

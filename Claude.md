@@ -67,24 +67,29 @@ DialogueEngine.Core          ← moteur dialogue pur
 DialogueEngine.Serialization ← JSON dialogues
 DialogueEngine.Editor        ← éditeur Avalonia
 
-DungeonCrawler.Core          ← moteur donjon pur
-  └── Core.Persist           ← DTOs de sauvegarde (SaveFile, CharacterSaveData)
+DungeonCrawler.Core          ← moteur donjon pur (maps, party, entités, systèmes)
+DungeonCrawler.Persistence   ← DTOs sauvegarde (SaveFile, WorldState, NpcState...)
 DungeonCrawler.Characters    ← système RPG personnages (indépendant de Core)
+DungeonCrawler.EventSystems  ← events + scripts + actions (ref Core + Persistence + Characters)
 DungeonCrawler.Raylib        ← renderer + IGameScreen + screens + mappers
-DungeonCrawler.MapLoader     ← pont éditeur ↔ moteur
+DungeonCrawler.MapLoader     ← pont éditeur ↔ moteur (ref Core + MapEditor.Core + EventSystems)
 
 MapEditor.Core               ← modèles maps + modules + CharacterRulesFile
 MapEditor.Avalonia           ← éditeur visuel + éditeur CharacterRules
 
 Nostro                       ← campagne jouable (Exe)
-  └── rules/character_rules.json
+  ├── rules/character_rules.json
+  ├── dialogues/intro_dialogue.json
+  └── events/ (à venir)
 ```
 
 **Règle de dépendance** :
-- `DungeonCrawler.Core` ne connaît ni Raylib ni MapEditor ni Characters
+- `DungeonCrawler.Core` ne connaît ni Raylib ni MapEditor ni Characters ni Persistence
+- `DungeonCrawler.Persistence` est pur (DTOs, pas de dépendance domaine)
 - `DungeonCrawler.Characters` est totalement indépendant
-- `DungeonCrawler.Raylib` référence Core + Characters + MapLoader
-- `DungeonCrawler.MapLoader` fait le pont (Core + MapEditor.Core)
+- `DungeonCrawler.EventSystems` fait le lien Core + Persistence + Characters
+- `DungeonCrawler.Raylib` référence Core + Persistence + Characters + EventSystems + MapLoader
+- `DungeonCrawler.MapLoader` fait le pont (Core + MapEditor.Core + EventSystems + Persistence)
 - `Nostro` est l'Exe qui assemble tout
 
 ---
@@ -97,17 +102,17 @@ Nostro                       ← campagne jouable (Exe)
 - Flow : `MainMenuScreen` → `SlotSelectScreen` → `CharacterCreationScreen` → `PlayingScreen`
 - `PlayingScreen` → `I` → `StatsScreen` → `Escape` → `PlayingScreen`
 - `PlayingScreen` : `F5` = quicksave, `I` = stats
+- `GameServices(SaveManager, EventSystem, EventScriptRegistry)` — transite dans tous les écrans
 
 ---
 
 ## Système de sauvegarde
 
-- `SaveFile` + `CharacterSaveData` + `InjurySaveData` dans `DungeonCrawler.Core.Persist`
+- `SaveFile` + `CharacterSaveData` + `InjurySaveData` + `WorldState` dans `DungeonCrawler.Persistence`
 - `SaveManager` : `%AppData%/{campaignName}/saves/slot_N.json`, 5 slots
 - `CharacterMapper` dans `DungeonCrawler.Raylib` : `Character` ↔ `CharacterSaveData`
-- `ActiveSave(SaveManager, SlotIndex, HeroName, List<Character>)` : contexte en cours de partie
+- `ActiveSave(SaveManager, SlotIndex, HeroName, List<Character>, WorldState)` : contexte en cours de partie
 - Coordonnées sauvegardées = coords JEU (déjà flippées)
-- `DungeonCrawler.Core.Persist` → futur projet `DungeonCrawler.Persistence` (dette tech)
 
 ---
 
@@ -130,6 +135,60 @@ Guard : si `_backgroundTypes.Count == 0`, `IsComplete` doit retourner `true` qua
 
 **CharacterRules** : chargé depuis `config.CharacterRulesPath`.
 Le fichier doit être copié dans l'output via `CopyToOutputDirectory` dans le `.csproj`.
+
+---
+
+## Système d'events (DungeonCrawler.EventSystems)
+
+**Architecture** :
+```
+GameEvent (trigger, condition, List<EventEffect>)
+EventEffect { ScriptId, Params }
+IEventScript { ScriptId, Parameters, Execute(ctx, params) }
+EventScriptRegistry → built-ins auto-enregistrés + scripts custom campagne
+EventScriptContext → API complète pour les scripts
+IGameAction → actions différées traitées par PlayingScreen
+```
+
+**EventScriptContext API** :
+```csharp
+ctx.SetFlag("f") / ClearFlag("f") / HasFlag("f")
+ctx.SetVar("k", v) / GetVar("k") / IncrVar("k")
+ctx.Npc("id").Hostility += 30
+ctx.StartDialogue("id") / ShowMessage("msg") / GiveItem("id", qty)
+```
+
+**DungeonSession** :
+- Reçoit `EventSystem?` et `WorldState?` en paramètres optionnels
+- `NotifyMapEntered()` → appeler depuis `PlayingScreen.OnEnter()`
+- Relaye `EventFired` : `Action<GameEvent, IReadOnlyList<IGameAction>>`
+
+---
+
+## Dialogue overlay (DungeonCrawler.Raylib)
+
+**`DialogueOverlay`** utilise `DialogueRunner` + `EmptyDialogueContext`.
+
+Pièges :
+- Réponses silencieuses : utiliser `" "` (espace) et **pas** `""` — sinon désync runner/overlay
+- `_justSkipped` flag : empêche Space de skip ET avancer dans la même frame
+- `TryAdvance(i)` : wrappé en try/catch (runner peut être désynchronisé)
+- `BlocksInput = true` par défaut — bloque `HandleInput()` ET `ProcessPendingEffects()`
+
+**Fichiers dialogue** dans `Nostro/dialogues/` (copie via glob `dialogues\**\*`).
+
+---
+
+## WorldState
+
+```csharp
+WorldState
+├── Flags (HashSet<string>)           → events one-shot, items ramassés
+├── Variables (Dict<string, int>)     → compteurs, scores
+└── Npcs (Dict<string, NpcState>)     → Hostility 0-100, Affinity 0-100, IsAlive, IsRecruited
+```
+
+Sauvegardé dans `SaveFile.WorldState`. Restauré au chargement.
 
 ---
 
@@ -166,3 +225,4 @@ Le fichier doit être copié dans l'output via `CopyToOutputDirectory` dans le `
 - `CharacterAttributes` (pas `Attributes`) — renommé pour cohérence.
 - `BackgroundRequirementRaw` : `this((List<string>?)null)` pour lever l'ambiguïté du constructeur de copie.
 - `FantasyUI.Init` : charger la police à 256px pour éviter la pixelisation.
+- Dialogue : réponses silencieuses avec `" "` pas `""` (désync runner/overlay sinon).

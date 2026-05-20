@@ -13,6 +13,40 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 - Écran de pause + retour au menu depuis le jeu
 - Bouton Save dans l'UI du jeu
 - Système de combat (1d20 + quotient)
+- EventLoader (JSON → EventSystem)
+- Éditeur d'events dans MapEditor
+
+---
+
+## [0.6.0] — Events + Dialogue narratif
+
+### Ajouté
+- `DungeonCrawler.Persistence` — nouveau projet (extrait de Core.Persist)
+  - `SaveFile`, `LocationSave`, `CharacterSaveData`, `InjurySaveData`
+  - `NpcState` (Hostility, Affinity, IsAlive, IsRecruited)
+  - `WorldState` (Flags, Variables, Npcs)
+  - `SaveManager`
+- `DungeonCrawler.EventSystems` — nouveau projet
+  - `GameEvent`, `EventCondition`, `EventEffect { ScriptId, Params }`
+  - `IEventScript`, `ScriptParameter`, `EventScriptContext` (API complète)
+  - `EventScriptRegistry` avec 8 scripts built-in
+  - `IGameAction` + 6 implémentations
+  - `EventSystem` avec 6 triggers
+- `GameServices(SaveManager, EventSystem, EventScriptRegistry)` — transite dans tous les écrans
+- `DialogueOverlay` — overlay typewriter sur PlayingScreen
+  - `BlocksInput = true` par défaut
+  - `_justSkipped` flag (skip typewriter sans avancer)
+  - `TryAdvance()` défensif avec try/catch
+- `intro_dialogue.json` dans `Nostro/dialogues/`
+- Event intro MapEnter one-shot (SetFlag + StartDialogue)
+
+### Modifié
+- `DungeonSession` — reçoit `EventSystem?` + `WorldState?`, expose `NotifyMapEntered()`
+- `PlayingScreen` — input bloqué pendant dialogue (`dialogueBlocking`)
+- `SaveFile` — ajout `WorldState`
+- `ActiveSave` — ajout `WorldState`
+- `MainMenuScreen`, `SlotSelectScreen`, `CharacterCreationScreen` → `GameServices`
+- `Program.cs` Nostro — configuration `GameServices` + event hardcodé
 
 ---
 
@@ -21,14 +55,12 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 ### Ajouté
 - `DungeonCrawler.Characters` — nouveau projet indépendant
   - `CharacterAttribute`, `CharacterAttributes`, `AttributesModifier`
-  - `CharacterGender`, `CharacterSize`, `CharacterWeight`, `CharacterSensitivity`
   - Chaîne de filtrage : Genre → Taille → Poids → Sensibilité → Background
   - `Background`, `BackgroundType`, `BackgroundLoader`, `CharacterRules`
   - `Skill`, `CharacterSkills`
   - `Injury` — hiérarchie sealed Physical/Mental/Energy avec Severity
-  - `Character` + stats dérivées (MaxHp, QAm, QAc, QDp, QDe) + quotients finaux
-  - `CharacterState` — WithDamage, WithHeal, WithInjury
-  - `CharacterBuilder` — IsLastStep, IsComplete, Build()
+  - `Character` + stats dérivées + quotients finaux
+  - `CharacterState`, `CharacterBuilder`
   - Tests : AttributeTests, CharacterStatsTests, CreationChainTests, CharacterBuilderTests
 - `CharacterSaveData`, `InjurySaveData` dans `DungeonCrawler.Core.Persist`
 - `SaveFile.Party` — liste de `CharacterSaveData`
@@ -45,7 +77,7 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 ### Modifié
 - `CharacterCreationScreen` — remplace l'ancien écran (saisie nom uniquement)
 - `PlayingScreen` — ajout `I` → StatsScreen, `_nextScreen` pattern, `F5` quicksave complet
-- `GameScreenRunner.Run()` — `SetExitKey(KeyboardKey.Null)` pour gérer Escape dans les écrans
+- `GameScreenRunner.Run()` — `SetExitKey(KeyboardKey.Null)`
 - `ActiveSave` — ajout `List<Character> Characters`
 - `CampaignConfig` — ajout `CharacterRulesPath`
 - `CampaignProject` — ajout `CharacterRulesPath` + `AbsoluteCharacterRulesPath`
@@ -103,18 +135,9 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 ## [0.2.0] — Moteur donjon + renderer Raylib
 
 ### Ajouté
-- `DungeonCrawler.Core`
-  - `DungeonMap`, `Tile`, `TileTag`, `Party`, `PartyMember`, `GridPosition`, `Direction`
-  - `MovementSystem`, `TurnManager`, `ViewBuilder`
-  - `EntitySystem` — MonsterEntity, NpcEntity, ItemEntity
-  - `BiomeTextures`
-- `DungeonCrawler.Raylib`
-  - `DungeonRenderer` — rendu 3D style M&M (scanline, textures, animations)
-  - Animations de déplacement, HUD
-- `DungeonCrawler.MapLoader`
-  - `MapFileLoader` — flip Y, cache modules
-  - `LoadedMap`, `DungeonSession`, `ModuleTexturesConverter`
-  - Tests unitaires
+- `DungeonCrawler.Core` — DungeonMap, Party, MovementSystem, TurnManager, ViewBuilder, EntitySystem, BiomeTextures
+- `DungeonCrawler.Raylib` — DungeonRenderer, animations, HUD
+- `DungeonCrawler.MapLoader` — MapFileLoader (flip Y), LoadedMap, DungeonSession, tests
 - `Nostro` — maps, textures stone dungeon, portes DoorOpen
 
 ### Modifié
