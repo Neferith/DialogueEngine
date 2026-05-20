@@ -1,4 +1,4 @@
-﻿namespace DungeonCrawler.Core;
+﻿namespace DungeonCrawler.Persistence;
 
 public class CharacterSaveData
 {

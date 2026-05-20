@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using DungeonCrawler.Core;
-using DungeonCrawler.Core.Persist;
+using DungeonCrawler.Persistence;
 using Raylib_cs;
 
 namespace DungeonCrawler.RaylibGame;
@@ -8,13 +8,13 @@ namespace DungeonCrawler.RaylibGame;
 public class MainMenuScreen : IGameScreen
 {
     private readonly CampaignConfig _config;
-    private readonly SaveManager _saveManager;
+    private readonly GameServices _services;
     private IGameScreen? _nextScreen;
 
-    public MainMenuScreen(CampaignConfig config, SaveManager saveManager)
+    public MainMenuScreen(CampaignConfig config, GameServices services)
     {
         _config = config;
-        _saveManager = saveManager;
+        _services = services;
     }
 
     public void OnEnter() => FantasyUI.Init(_config);
@@ -52,14 +52,12 @@ public class MainMenuScreen : IGameScreen
         float gap = 18f;
         float startY = h * 0.46f;
 
-        if (FantasyUI.Button(new Rectangle(btnX, startY, btnW, btnH),
-                             "✦  Nouvelle partie", colors))
-            _nextScreen = new SlotSelectScreen(_config, _saveManager, isNewGame: true);
+        if (FantasyUI.Button(new Rectangle(btnX, startY, btnW, btnH), "✦  Nouvelle partie", colors))
+            _nextScreen = new SlotSelectScreen(_config, _services, isNewGame: true);
 
-        bool hasSave = _saveManager.GetAllSlots().Any(s => s != null);
-        if (FantasyUI.Button(new Rectangle(btnX, startY + btnH + gap, btnW, btnH),
-                             "⚔  Charger une partie", colors) && hasSave)
-            _nextScreen = new SlotSelectScreen(_config, _saveManager, isNewGame: false);
+        bool hasSave = _services.SaveManager.GetAllSlots().Any(s => s != null);
+        if (FantasyUI.Button(new Rectangle(btnX, startY + btnH + gap, btnW, btnH), "⚔  Charger une partie", colors) && hasSave)
+            _nextScreen = new SlotSelectScreen(_config, _services, isNewGame: false);
 
         if (FantasyUI.Button(new Rectangle(btnX, startY + (btnH + gap) * 2, btnW, btnH),
                      "✕  Quitter", colors))

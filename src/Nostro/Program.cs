@@ -41,13 +41,43 @@ var session = new DungeonSession(loaded, runner, turns, loader,
 var playingScreen = new PlayingScreen(session, config);
 new GameScreenRunner(playingScreen, config).Run();*/
 
-using DungeonCrawler.Core.Persist;
+using DungeonCrawler.EventSystems;
+using DungeonCrawler.Persistence;
 using DungeonCrawler.RaylibGame;
 using Nostro;
 
 var config = NostroConfig.Create();
+
+// ── Scripts custom Nostro ─────────────────────────────────────────────────────
+var scriptRegistry = new EventScriptRegistry(); // built-ins déjà enregistrés
+
+// Enregistrer ici les scripts custom de la campagne :
+// scriptRegistry.Register(new MyCustomScript());
+
+// ── EventSystem ───────────────────────────────────────────────────────────────
+var eventSystem = new EventSystem(scriptRegistry);
+
+// TODO : charger les events depuis JSON quand le toolset sera prêt
+// Pour l'instant : event de test hardcodé
+eventSystem.Register(new GameEvent
+{
+    Id = "intro",
+    Trigger = EventTrigger.MapEnter,
+    MapId = "the_cells",
+    Condition = new EventCondition { FlagNotSet = "intro_played" },
+    Effects =
+    [
+        new EventEffect { ScriptId = "SetFlag",
+                          Params = new() { ["flagId"] = "intro_played" } },
+        new EventEffect { ScriptId = "StartDialogue",
+                          Params = new() { ["dialogueId"] = "intro_dialogue" } }
+    ]
+});
+
+// ── Services ──────────────────────────────────────────────────────────────────
 var saveManager = new SaveManager(config.SaveFolderName);
+var services = new GameServices(saveManager, eventSystem, scriptRegistry);
 
 new GameScreenRunner(
-    new MainMenuScreen(config, saveManager),
+    new MainMenuScreen(config, services),
     config).Run();

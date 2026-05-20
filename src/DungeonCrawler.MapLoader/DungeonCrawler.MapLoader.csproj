@@ -1,12 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-  <ItemGroup>
-    <!-- Adapter tes chemins selon où vivent les deux projets -->
-    <ProjectReference Include="..\MapEditor.Core\MapEditor.Core.csproj" />
-    <ProjectReference Include="..\DungeonCrawler.Core\DungeonCrawler.Core.csproj" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\DungeonCrawler.Core\DungeonCrawler.Core.csproj" />
+		<ProjectReference Include="..\MapEditor.Core\MapEditor.Core.csproj" />
+		<ProjectReference Include="..\DungeonCrawler.Persistence\DungeonCrawler.Persistence.csproj" />
+		<ProjectReference Include="..\DungeonCrawler.EventSystems\DungeonCrawler.EventSystems.csproj" />
+	</ItemGroup>
 </Project>

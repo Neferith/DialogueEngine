@@ -4,7 +4,12 @@
     <PackageReference Include="Raylib-cs" Version="6.1.1" />
     <ProjectReference Include="..\DungeonCrawler.Core\DungeonCrawler.Core.csproj" />
 	  <ProjectReference Include="..\DungeonCrawler.Characters\DungeonCrawler.Characters.csproj" />
+	  <ProjectReference Include="..\DungeonCrawler.Persistence\DungeonCrawler.Persistence.csproj" />
+	  <ProjectReference Include="..\DungeonCrawler.EventSystems\DungeonCrawler.EventSystems.csproj" />
 	  <ProjectReference Include="..\DungeonCrawler.MapLoader\DungeonCrawler.MapLoader.csproj" />
+
+	  <ProjectReference Include="..\DialogueEngine.Core\DialogueEngine.Core.csproj" />
+	  <ProjectReference Include="..\DialogueEngine.Serialization\DialogueEngine.Serialization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

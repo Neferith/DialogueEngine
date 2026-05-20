@@ -1,10 +1,11 @@
 ﻿namespace DungeonCrawler.RaylibGame;
 
 using DungeonCrawler.Characters.Models;
-using DungeonCrawler.Core.Persist;
+using DungeonCrawler.Persistence;
 
 public record ActiveSave(
     SaveManager Manager, 
     int SlotIndex, 
     string HeroName,
-    List<Character> Characters);
+    List<Character> Characters,
+    WorldState World);

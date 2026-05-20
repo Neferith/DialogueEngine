@@ -4,28 +4,28 @@ using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Models;
 using DungeonCrawler.Core.Rendering;
 using DungeonCrawler.Core.Systems;
+using DungeonCrawler.EventSystems;
+using DungeonCrawler.Persistence;
 
 namespace DungeonCrawler.MapLoader;
 
-/// <summary>
-/// Gère la session de jeu courante : map active, runner, et transitions entre maps.
-/// C'est le point d'entrée unique pour le game loop — remplace l'accès direct à
-/// DungeonRunner + TurnManager.
-/// </summary>
 public class DungeonSession
 {
     private readonly MapFileLoader _loader;
     private readonly string _mapsPath;
     private readonly string _modulesPath;
+    private readonly EventSystem? _events;
+    private readonly WorldState? _world;
 
     public LoadedMap CurrentMap { get; private set; }
     public DungeonRunner Runner { get; private set; }
     public TurnManager Turns { get; private set; }
-
     public BiomeTextures? CurrentBiomeTextures { get; private set; }
 
-    /// <summary>Déclenché quand une transition a changé la map courante.</summary>
     public event Action<BiomeTextures?>? MapChanged;
+
+    /// <summary>Relayé depuis l'EventSystem interne.</summary>
+    public event Action<GameEvent, IReadOnlyList<IGameAction>>? EventFired;
 
     public DungeonSession(
         LoadedMap initialMap,
@@ -33,7 +33,9 @@ public class DungeonSession
         TurnManager turns,
         MapFileLoader loader,
         string mapsPath,
-        string modulesPath)
+        string modulesPath,
+        EventSystem? events = null,
+        WorldState? world = null)
     {
         CurrentMap = initialMap;
         Runner = runner;
@@ -41,6 +43,11 @@ public class DungeonSession
         _loader = loader;
         _mapsPath = mapsPath;
         _modulesPath = modulesPath;
+        _events = events;
+        _world = world;
+
+        if (events != null)
+            events.EventFired += (ev, actions) => EventFired?.Invoke(ev, actions);
 
         var initialModule = _loader.GetModule(initialMap.ModuleId);
         CurrentBiomeTextures = initialModule != null
@@ -54,23 +61,48 @@ public class DungeonSession
     public Party Party => Runner.Party;
     public int TurnNumber => Turns.TurnNumber;
 
+    /// <summary>Appeler après OnEnter pour déclencher les events MapEnter initiaux.</summary>
+    public void NotifyMapEntered()
+    {
+        FireEvent(EventTrigger.MapEnter);
+    }
+
     public TurnResult ExecuteAction(PartyActionType action)
     {
         var result = Turns.ExecuteAction(action);
 
         if (result.PartyMoved)
+        {
             CheckTransition();
+            FireEvent(EventTrigger.TileEnter);
+        }
+
+        FireEvent(EventTrigger.TurnPassed);
 
         return result;
+    }
+
+    // ── Events ────────────────────────────────────────────────────────────────
+
+    private void FireEvent(EventTrigger trigger)
+    {
+        if (_events == null || _world == null) return;
+
+        var ctx = new EventContext
+        {
+            CurrentMapId = CurrentMap.Map.Name,
+            TurnNumber = Turns.TurnNumber,
+            PlayerPos = new GridPos(Runner.Party.Position.X, Runner.Party.Position.Y)
+        };
+
+        _events.Trigger(trigger, _world, ctx);
     }
 
     // ── Transitions ───────────────────────────────────────────────────────────
 
     private void CheckTransition()
     {
-        Console.WriteLine($"[CheckTransition] pos={Runner.Party.Position}");
         var transition = CurrentMap.GetTransitionAt(Runner.Party.Position);
-        Console.WriteLine($"[CheckTransition] transition={transition?.TargetMapId ?? "null"}");
         if (transition == null) return;
 
         var targetPath = Path.Combine(_mapsPath, $"{transition.TargetMapId}.map.json");
@@ -83,17 +115,12 @@ public class DungeonSession
 
         var newMap = _loader.Load(targetPath, _modulesPath);
 
-        // La position cible est en coordonnées éditeur → flip Y
         var targetPos = new GridPosition(
             transition.TargetPosition.X,
             newMap.Map.Height - 1 - transition.TargetPosition.Y);
 
-        var targetFacing = ParseDirection(transition.TargetOrientation);
+        Runner.Party.Teleport(targetPos, ParseDirection(transition.TargetOrientation));
 
-        // On conserve la party (membres, stats) — on change juste position + orientation
-        Runner.Party.Teleport(targetPos, targetFacing);
-
-        // Swap du runner et du turn manager sur la nouvelle map
         var newEntities = new EntitySystem();
         var newRunner = new DungeonRunner(newMap.Map, Runner.Party, newEntities);
         var newTurns = new TurnManager(newRunner, newEntities);
@@ -102,14 +129,12 @@ public class DungeonSession
         Runner = newRunner;
         Turns = newTurns;
 
-        CurrentMap = newMap;
-        Runner = newRunner;
-        Turns = newTurns;
-
         var newModule = _loader.GetModule(newMap.ModuleId);
         CurrentBiomeTextures = ModuleTexturesConverter.Convert(newModule ?? new());
         MapChanged?.Invoke(CurrentBiomeTextures);
-        Console.WriteLine($"[DungeonSession] Transition → {transition.TargetMapId}");
+
+        // Déclencher MapEnter sur la nouvelle map
+        FireEvent(EventTrigger.MapEnter);
     }
 
     private static Direction ParseDirection(string orientation) =>

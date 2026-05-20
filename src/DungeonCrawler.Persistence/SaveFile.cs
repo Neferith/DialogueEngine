@@ -1,4 +1,4 @@
-﻿namespace DungeonCrawler.Core.Persist;
+﻿namespace DungeonCrawler.Persistence;
 
 public class LocationSave
 {
@@ -19,6 +19,8 @@ public class SaveFile
 
 
     public List<CharacterSaveData> Party { get; set; } = new();
+
+    public WorldState WorldState { get; set; } = new();
 
     // Futurs champs ajoutés ici sans casser les anciennes saves :
     // public PartySave?  Party      { get; set; }

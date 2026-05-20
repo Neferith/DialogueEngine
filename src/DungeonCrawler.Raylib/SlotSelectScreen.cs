@@ -1,7 +1,7 @@
 ﻿using DungeonCrawler.Characters.Creation;
 using DungeonCrawler.Characters.Models;
 using DungeonCrawler.Core.Entities;
-using DungeonCrawler.Core.Persist;
+using DungeonCrawler.Persistence;
 using DungeonCrawler.Core.Systems;
 using DungeonCrawler.MapLoader;
 using Raylib_cs;
@@ -11,22 +11,22 @@ namespace DungeonCrawler.RaylibGame;
 public class SlotSelectScreen : IGameScreen
 {
     private readonly CampaignConfig _config;
-    private readonly SaveManager _saveManager;
+    private readonly GameServices _services;
     private readonly bool _isNewGame;
 
     private SaveFile?[] _slots = [];
     private IGameScreen? _nextScreen;
 
-    public SlotSelectScreen(CampaignConfig config, SaveManager saveManager, bool isNewGame)
+    public SlotSelectScreen(CampaignConfig config, GameServices services, bool isNewGame)
     {
         _config = config;
-        _saveManager = saveManager;
+        _services = services;
         _isNewGame = isNewGame;
     }
 
     public void OnEnter()
     {
-        _slots = _saveManager.GetAllSlots();
+        _slots = _services.SaveManager.GetAllSlots();
     }
 
     public void OnExit() { }
@@ -66,7 +66,7 @@ public class SlotSelectScreen : IGameScreen
             if (canClick && SlotClicked(rect))
             {
                 if (_isNewGame)
-                    _nextScreen = new CharacterCreationScreen(_config, _saveManager, i);
+                    _nextScreen = new CharacterCreationScreen(_config, _services, i);
                 else if (save != null)
                     _nextScreen = LoadGame(save, i);
             }
@@ -77,7 +77,7 @@ public class SlotSelectScreen : IGameScreen
         if (FantasyUI.Button(
                 new Rectangle((w - btnW) / 2f, h * 0.88f, btnW, btnH),
                 "← Retour", colors))
-            _nextScreen = new MainMenuScreen(_config, _saveManager);
+            _nextScreen = new MainMenuScreen(_config, _services);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -128,9 +128,12 @@ public class SlotSelectScreen : IGameScreen
         if (characters.Count == 0)
             characters.Add(CreateMinimalCharacter(save.HeroName));
 
-        var activeSave = new ActiveSave(
-            _saveManager, slotIndex,
-            save.HeroName, characters);
+       /* var activeSave = new ActiveSave(
+            _saveManager, 
+            slotIndex,
+            save.HeroName, 
+            characters, 
+            save.WorldState);*/
 
         var loader = new MapFileLoader();
         var loaded = loader.Load(
@@ -149,8 +152,16 @@ public class SlotSelectScreen : IGameScreen
         var entities = new EntitySystem();
         var runner = new DungeonCrawler.Core.DungeonRunner(loaded.Map, party, entities);
         var turns = new TurnManager(runner, entities);
-        var session = new DungeonSession(loaded, runner, turns, loader,
-                           _config.MapsPath, _config.ModulesPath);
+        var session = new DungeonSession(
+        loaded, runner, turns, loader,
+        _config.MapsPath, _config.ModulesPath,
+        _services.Events,          // ← EventSystem
+        save.WorldState);          // ← WorldState restauré
+
+        var activeSave = new ActiveSave(
+            _services.SaveManager, slotIndex,
+            save.HeroName, characters,
+            save.WorldState);
 
         return new PlayingScreen(session, _config, activeSave);
     }

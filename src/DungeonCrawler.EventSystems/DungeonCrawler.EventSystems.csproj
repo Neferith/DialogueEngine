@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DungeonCrawler.Core\DungeonCrawler.Core.csproj" />
+	<ProjectReference Include="..\DungeonCrawler.Persistence\DungeonCrawler.Persistence.csproj" />
+    <ProjectReference Include="..\DungeonCrawler.Characters\DungeonCrawler.Characters.csproj" />
+  </ItemGroup>
+</Project>

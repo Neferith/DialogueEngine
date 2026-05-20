@@ -4,7 +4,7 @@ using DungeonCrawler.Characters.Backgrounds;
 using DungeonCrawler.Characters.Creation;
 using DungeonCrawler.Characters.Models;
 using DungeonCrawler.Core.Characters;
-using DungeonCrawler.Core.Persist;
+using DungeonCrawler.Persistence;
 using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Systems;
 using DungeonCrawler.MapLoader;
@@ -15,16 +15,16 @@ namespace DungeonCrawler.RaylibGame;
 public class CharacterCreationScreen : IGameScreen
 {
     private readonly CampaignConfig _config;
-    private readonly SaveManager _saveManager;
+    private readonly GameServices _services;
     private readonly int _slotIndex;
 
     private CharacterBuilder _builder = null!;
     private IGameScreen? _nextScreen;
 
-    public CharacterCreationScreen(CampaignConfig config, SaveManager saveManager, int slotIndex)
+    public CharacterCreationScreen(CampaignConfig config, GameServices services, int slotIndex)
     {
         _config = config;
-        _saveManager = saveManager;
+        _services = services;
         _slotIndex = slotIndex;
     }
 
@@ -57,7 +57,7 @@ public class CharacterCreationScreen : IGameScreen
             Advance();
 
         if (Raylib.IsKeyPressed(KeyboardKey.Escape))
-            _nextScreen = new SlotSelectScreen(_config, _saveManager, isNewGame: true);
+            _nextScreen = new SlotSelectScreen(_config, _services, isNewGame: true);
 
         var next = _nextScreen;
         _nextScreen = null;
@@ -348,7 +348,7 @@ public class CharacterCreationScreen : IGameScreen
                              "← Retour", colors))
         {
             if (_builder.CurrentStep == CreationStep.Name)
-                _nextScreen = new SlotSelectScreen(_config, _saveManager, isNewGame: true);
+                _nextScreen = new SlotSelectScreen(_config, _services, isNewGame: true);
         }
 
         string nextLabel = _builder.IsLastStep ? "✦  Commencer" : "Suivant →";
@@ -378,6 +378,15 @@ public class CharacterCreationScreen : IGameScreen
     {
         var character = _builder.Build();
 
+        // Charger la map pour récupérer le spawn réel
+        var loader = new MapFileLoader();
+        var loaded = loader.Load(
+            Path.Combine(_config.MapsPath, $"{_config.StartingMapId}.map.json"),
+            _config.ModulesPath);
+
+        var spawn = loaded.PlayerSpawn ?? new DungeonCrawler.Core.Models.GridPosition(1, 1);
+        var facing = loaded.PlayerFacing;
+
         var save = new SaveFile
         {
             SlotName = $"Slot {_slotIndex + 1}",
@@ -385,20 +394,21 @@ public class CharacterCreationScreen : IGameScreen
             Location = new LocationSave
             {
                 MapId = _config.StartingMapId,
-                X = 0,
-                Y = 0,
-                Facing = "NORTH"
+                X = spawn.X,
+                Y = spawn.Y,
+                Facing = facing.ToString().ToUpperInvariant()
             }
         };
         save.Party.Add(CharacterMapper.ToSaveData(character));
-        _saveManager.Save(_slotIndex, save);
+        _services.SaveManager.Save(_slotIndex, save);
 
         var activeSave = new ActiveSave(
-            _saveManager, _slotIndex,
+            _services.SaveManager, _slotIndex,
             character.Description.Name.FullName,
-            new List<Character> { character });
+            new List<Character> { character },
+            new WorldState());
 
-        _nextScreen = BuildPlayingScreen(save, activeSave);
+        _nextScreen = BuildPlayingScreen(save, activeSave, loaded, loader);
     }
 
     private IGameScreen BuildPlayingScreen(SaveFile save, ActiveSave activeSave,
@@ -421,8 +431,11 @@ public class CharacterCreationScreen : IGameScreen
         var entities = new EntitySystem();
         var runner = new DungeonCrawler.Core.DungeonRunner(loaded.Map, party, entities);
         var turns = new TurnManager(runner, entities);
-        var session = new DungeonSession(loaded, runner, turns, loader,
-                           _config.MapsPath, _config.ModulesPath);
+        var session = new DungeonSession(
+            loaded, runner, turns, loader,
+            _config.MapsPath, _config.ModulesPath,
+            _services.Events,        // ← EventSystem
+            activeSave.World);       // ← WorldState
 
         return new PlayingScreen(session, _config, activeSave);
     }
