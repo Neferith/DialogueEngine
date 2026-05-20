@@ -66,7 +66,7 @@ public class MapFileLoaderTests
         var map = MakeMap(defaultTile: "STONE_WALL");
         map.Tiles.Add(new TileData
         {
-            Position = new PositionData(3, 4),
+            Position = new PositionData(3, 3),
             TileTypeId = "STONE_FLOOR",
             Walkable = true
         });
@@ -91,7 +91,7 @@ public class MapFileLoaderTests
 
         var loaded = Load(map);
 
-        loaded.Map.GetTile(2, 2)!.Tag.Should().Be(TileTag.Door);
+        loaded.Map.GetTile(2, 5)!.Tag.Should().Be(TileTag.Door);
     }
 
     // ── Player spawn ──────────────────────────────────────────────────────────
@@ -112,13 +112,13 @@ public class MapFileLoaderTests
         {
             Id = "spawn",
             EntityTypeId = "PLAYER_SPAWN",
-            Position = new PositionData(2, 5),
+            Position = new PositionData(2, 6),
             Orientation = "EAST"
         });
 
         var loaded = Load(map);
 
-        loaded.PlayerSpawn.Should().Be(new GridPosition(2, 5));
+        loaded.PlayerSpawn.Should().Be(new GridPosition(2, 1));
         loaded.PlayerFacing.Should().Be(Direction.East);
     }
 
@@ -143,7 +143,7 @@ public class MapFileLoaderTests
 
         var loaded = Load(map);
 
-        var transition = loaded.GetTransitionAt(new GridPosition(7, 0));
+        var transition = loaded.GetTransitionAt(new GridPosition(7, 7));
         transition.Should().NotBeNull();
         transition!.TargetMapId.Should().Be("dungeon_02");
         transition.TargetPosition.X.Should().Be(1);

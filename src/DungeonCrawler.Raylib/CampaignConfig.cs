@@ -37,6 +37,9 @@ public class CampaignConfig
     /// <summary>Dossier des assets visuels (textures).</summary>
     public string AssetsPath { get; init; } = "Assets";
 
+    /// <summary>Chemin vers character_rules.json (relatif au dossier de l'exe).</summary>
+    public string CharacterRulesPath { get; init; } = "rules/character_rules.json";
+
     /// <summary>Map chargée au démarrage d'une nouvelle partie.</summary>
     public string StartingMapId { get; init; } = "";
 

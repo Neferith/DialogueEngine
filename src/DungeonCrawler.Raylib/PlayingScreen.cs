@@ -2,6 +2,7 @@
 using DungeonCrawler.Core.Rendering;
 using DungeonCrawler.MapLoader;
 using Raylib_cs;
+using DungeonCrawler.Core.Persist;
 
 namespace DungeonCrawler.RaylibGame;
 
@@ -10,6 +11,8 @@ public class PlayingScreen : IGameScreen
     private readonly DungeonSession _session;
     private readonly CampaignConfig _config;
     private readonly ActiveSave _activeSave;
+
+    private IGameScreen? _nextScreen;
 
     private AnimationState _anim = new();
     private DungeonView _currentView = null!;
@@ -46,7 +49,9 @@ public class PlayingScreen : IGameScreen
             DungeonRenderer.RenderScene(_currentView, _session.Runner);
         }
 
-        return null; // pas de transition pour l'instant
+        var next = _nextScreen;
+        _nextScreen = null;
+        return next;
     }
 
     public void Draw(int screenWidth, int screenHeight)
@@ -97,6 +102,8 @@ public class PlayingScreen : IGameScreen
             action = PartyActionType.Interact;
         else if (Raylib.IsKeyPressed(KeyboardKey.Space))
             action = PartyActionType.Wait;
+        else if (Raylib.IsKeyPressed(KeyboardKey.I))
+            _nextScreen = new StatsScreen(_session, _config, _activeSave);
         else if (Raylib.IsKeyPressed(KeyboardKey.F5))
             QuickSave();
 
@@ -145,6 +152,9 @@ public class PlayingScreen : IGameScreen
                 Facing = party.Facing.ToString().ToUpperInvariant()
             }
         };
+
+        foreach (var c in _activeSave.Characters)
+            save.Party.Add(CharacterMapper.ToSaveData(c));
 
         _activeSave.Manager.Save(_activeSave.SlotIndex, save);
         Console.WriteLine($"[Save] {_activeSave.HeroName} — {save.Location.MapId} ({party.Position.X},{party.Position.Y})");

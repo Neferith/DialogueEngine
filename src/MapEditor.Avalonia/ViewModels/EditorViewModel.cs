@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MapEditor.Avalonia;
 using MapEditor.Avalonia.DI;
+using MapEditor.Avalonia.ViewModels.CharacterRules;
 using MapEditor.Core.Models;
 using MapEditor.Core.Modules;
 using MapEditor.Core.Serialization;
@@ -35,6 +36,7 @@ public partial class EditorViewModel : ObservableObject
     [ObservableProperty] private CampaignProject? _activeProject;
     [ObservableProperty] private string _projectName = "Aucun projet";
     [ObservableProperty] private MapBrowserViewModel? _mapBrowser;
+    [ObservableProperty] private CharacterRulesViewModel? _characterRules;
 
     public ObservableCollection<ModuleDefinition>   Modules     { get; } = new();
     public ObservableCollection<TileTypeDefinition>   TileTypes   { get; } = new();
@@ -129,11 +131,20 @@ public partial class EditorViewModel : ObservableObject
         var mapPaths = ScanMaps(project);
         Properties.Initialize(_serializer, mapPaths);
         MapBrowser?.LoadFromProject(project.AbsoluteMapsPath);
+        CharacterRules = new CharacterRulesViewModel(project.AbsoluteCharacterRulesPath);
 
         Properties.Clear();
         MapGrid = null;
         SaveMapCommand.NotifyCanExecuteChanged();
         SaveMapAsCommand.NotifyCanExecuteChanged();
+    }
+
+    public event Action? CharacterRulesOpenRequested;
+
+    [RelayCommand(CanExecute = nameof(HasProject))]
+    private void OpenCharacterRules()
+    {
+        CharacterRulesOpenRequested?.Invoke();
     }
 
     [RelayCommand(CanExecute = nameof(HasProject))]
@@ -265,6 +276,7 @@ public partial class EditorViewModel : ObservableObject
         var mapPaths = ScanMaps(project);
         Properties.Initialize(_serializer, mapPaths);
         MapBrowser?.LoadFromProject(project.AbsoluteMapsPath);
+        CharacterRules = new CharacterRulesViewModel(project.AbsoluteCharacterRulesPath);
 
         _recentProjects.Add(project.Name, recent.Path);
         OnPropertyChanged(nameof(RecentProjects));

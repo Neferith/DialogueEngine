@@ -16,6 +16,7 @@ public class NostroConfig : CampaignConfig
         ModulesPath = "modules",
         MapsPath = "maps",
         AssetsPath = "Assets",
+        CharacterRulesPath = "rules/character_rules.json",
         StartingMapId = "the_cells",
         Colors = new RaylibColorScheme
         {

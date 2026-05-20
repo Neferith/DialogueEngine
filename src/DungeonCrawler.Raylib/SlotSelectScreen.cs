@@ -1,4 +1,9 @@
-﻿using DungeonCrawler.MapLoader;
+﻿using DungeonCrawler.Characters.Creation;
+using DungeonCrawler.Characters.Models;
+using DungeonCrawler.Core.Entities;
+using DungeonCrawler.Core.Persist;
+using DungeonCrawler.Core.Systems;
+using DungeonCrawler.MapLoader;
 using Raylib_cs;
 
 namespace DungeonCrawler.RaylibGame;
@@ -115,27 +120,56 @@ public class SlotSelectScreen : IGameScreen
 
     private IGameScreen LoadGame(SaveFile save, int slotIndex)
     {
+        var characters = save.Party
+            .Select(CharacterMapper.FromSaveData)
+            .ToList();
+
+        // Si pas de données party (vieille save), créer un perso minimal
+        if (characters.Count == 0)
+            characters.Add(CreateMinimalCharacter(save.HeroName));
+
+        var activeSave = new ActiveSave(
+            _saveManager, slotIndex,
+            save.HeroName, characters);
+
         var loader = new MapFileLoader();
         var loaded = loader.Load(
             Path.Combine(_config.MapsPath, $"{save.Location.MapId}.map.json"),
             _config.ModulesPath);
 
-        var pos = new DungeonCrawler.Core.Models.GridPosition(save.Location.X, save.Location.Y);
+        var pos = new DungeonCrawler.Core.Models.GridPosition(
+                         save.Location.X, save.Location.Y);
         var facing = ParseDirection(save.Location.Facing);
 
         var party = new DungeonCrawler.Core.Characters.Party(pos, facing, maxSize: 4);
-        party.TryAddMember(new DungeonCrawler.Core.Characters.PartyMember(save.HeroName));
+        foreach (var c in characters)
+            party.TryAddMember(new DungeonCrawler.Core.Characters.PartyMember(
+                c.Description.Name.FullName));
 
-        var entities = new DungeonCrawler.Core.Entities.EntitySystem();
+        var entities = new EntitySystem();
         var runner = new DungeonCrawler.Core.DungeonRunner(loaded.Map, party, entities);
-        var turns = new DungeonCrawler.Core.Systems.TurnManager(runner, entities);
-        var session = new DungeonCrawler.MapLoader.DungeonSession(
-            loaded, runner, turns, loader,
-            _config.MapsPath, _config.ModulesPath);
-
-        var activeSave = new ActiveSave(_saveManager, slotIndex, save.HeroName);
+        var turns = new TurnManager(runner, entities);
+        var session = new DungeonSession(loaded, runner, turns, loader,
+                           _config.MapsPath, _config.ModulesPath);
 
         return new PlayingScreen(session, _config, activeSave);
+    }
+
+    private static Character CreateMinimalCharacter(string heroName)
+    {
+        var parts = heroName.Split(' ', 2);
+        var desc = new CharacterDescription(
+            Name: new CharacterName(
+                             parts.Length > 0 ? parts[0] : heroName,
+                             parts.Length > 1 ? parts[1] : ""),
+            Age: 20,
+            Gender: CharacterGender.Male,
+            Size: CharacterSize.Medium,
+            Weight: CharacterWeight.Average,
+            Sensitivity: CharacterSensitivity.Normal,
+            Background: null);
+
+        return Character.Create(desc, CharacterAttributes.Empty);
     }
 
     private static DungeonCrawler.Core.Models.Direction ParseDirection(string facing) =>

@@ -41,7 +41,7 @@ var session = new DungeonSession(loaded, runner, turns, loader,
 var playingScreen = new PlayingScreen(session, config);
 new GameScreenRunner(playingScreen, config).Run();*/
 
-using DungeonCrawler.Core;
+using DungeonCrawler.Core.Persist;
 using DungeonCrawler.RaylibGame;
 using Nostro;
 

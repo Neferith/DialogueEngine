@@ -12,6 +12,43 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 - Branchement DialogueEngine sur les NPC
 - Écran de pause + retour au menu depuis le jeu
 - Bouton Save dans l'UI du jeu
+- Système de combat (1d20 + quotient)
+
+---
+
+## [0.5.0] — Système de personnages + Sauvegarde complète
+
+### Ajouté
+- `DungeonCrawler.Characters` — nouveau projet indépendant
+  - `CharacterAttribute`, `CharacterAttributes`, `AttributesModifier`
+  - `CharacterGender`, `CharacterSize`, `CharacterWeight`, `CharacterSensitivity`
+  - Chaîne de filtrage : Genre → Taille → Poids → Sensibilité → Background
+  - `Background`, `BackgroundType`, `BackgroundLoader`, `CharacterRules`
+  - `Skill`, `CharacterSkills`
+  - `Injury` — hiérarchie sealed Physical/Mental/Energy avec Severity
+  - `Character` + stats dérivées (MaxHp, QAm, QAc, QDp, QDe) + quotients finaux
+  - `CharacterState` — WithDamage, WithHeal, WithInjury
+  - `CharacterBuilder` — IsLastStep, IsComplete, Build()
+  - Tests : AttributeTests, CharacterStatsTests, CreationChainTests, CharacterBuilderTests
+- `CharacterSaveData`, `InjurySaveData` dans `DungeonCrawler.Core.Persist`
+- `SaveFile.Party` — liste de `CharacterSaveData`
+- `CharacterMapper` dans `DungeonCrawler.Raylib` — Character ↔ CharacterSaveData
+- `ActiveSave` étendu avec `List<Character> Characters`
+- `CharacterCreationScreen` — flow complet 6 étapes avec cartes sélectionnables
+- `StatsScreen` — liste party + détail (attributs, combat, HP bar, compétences, blessures)
+- `FantasyUI.SelectableCard` — carte cliquable avec état sélectionné/hover
+- `CharacterRulesFile`, `CharacterRulesSerializer` dans `MapEditor.Core`
+- `CharacterRulesViewModel` + views dans `MapEditor.Avalonia`
+- Menu **Personnages → Règles de création** → `CharacterRulesWindow` dans l'éditeur
+- `rules/character_rules.json` dans Nostro (2 types, 12 skills)
+
+### Modifié
+- `CharacterCreationScreen` — remplace l'ancien écran (saisie nom uniquement)
+- `PlayingScreen` — ajout `I` → StatsScreen, `_nextScreen` pattern, `F5` quicksave complet
+- `GameScreenRunner.Run()` — `SetExitKey(KeyboardKey.Null)` pour gérer Escape dans les écrans
+- `ActiveSave` — ajout `List<Character> Characters`
+- `CampaignConfig` — ajout `CharacterRulesPath`
+- `CampaignProject` — ajout `CharacterRulesPath` + `AbsoluteCharacterRulesPath`
 
 ---
 
@@ -23,7 +60,7 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 - `PlayingScreen` — gameplay donjon (extraction de RaylibGameRunner)
 - `MainMenuScreen` — Nouvelle partie / Charger / Quitter
 - `SlotSelectScreen` — sélection de slot (5 slots, infos hero + date)
-- `CharacterCreationScreen` — saisie du nom du héros
+- `CharacterCreationScreen` — saisie du nom du héros (v1)
 - `FantasyUI` — helpers dark fantasy (Button, Panel, TextInput, Title, Label)
 - `CampaignConfig` + `RaylibColorScheme` (record) — config par campagne
 - `ActiveSave` — record regroupant SaveManager + slotIndex + heroName
@@ -57,8 +94,8 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 - Module `stone_dungeon` — 5 types de tiles + 4 entités + textures
 
 ### Modifié
-- `TileTypeDefinition` — ajout `TileTag`, `FloorType`, `CeilingType` (strings pour découplage)
-- `ModuleDefinition` — ajout `Textures` (chemins relatifs par biome)
+- `TileTypeDefinition` — ajout `TileTag`, `FloorType`, `CeilingType`
+- `ModuleDefinition` — ajout `Textures`
 - `ModuleTextures` — chemins wall, floor, ceiling, doorClosed, doorOpen
 
 ---
@@ -67,31 +104,22 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ### Ajouté
 - `DungeonCrawler.Core`
-  - `DungeonMap`, `Tile`, `TileTag` (None, Door, DoorOpen, StairsUp, StairsDown…)
-  - `Party`, `PartyMember`, `GridPosition`, `Direction`
+  - `DungeonMap`, `Tile`, `TileTag`, `Party`, `PartyMember`, `GridPosition`, `Direction`
   - `MovementSystem`, `TurnManager`, `ViewBuilder`
-  - `EntitySystem` — MonsterEntity (PatrolBehavior, AggressiveBehavior), NpcEntity, ItemEntity
-  - `BiomeTextures` — record pour chemins de textures
+  - `EntitySystem` — MonsterEntity, NpcEntity, ItemEntity
+  - `BiomeTextures`
 - `DungeonCrawler.Raylib`
   - `DungeonRenderer` — rendu 3D style M&M (scanline, textures, animations)
-  - `RaylibGameRunner` — boucle de jeu Raylib
-  - Animations de déplacement (avancer, reculer, tourner, strafer)
-  - HUD (position, orientation, tour, prompt interaction)
+  - Animations de déplacement, HUD
 - `DungeonCrawler.MapLoader`
-  - `MapFileLoader` — charge `.map.json` + module → `DungeonMap`
-  - Flip Y coordonnées éditeur → moteur (`height - 1 - y`)
-  - `LoadedMap` — résultat du chargement (map, transitions, spawn, entités)
-  - `DungeonSession` — transitions automatiques entre maps
-  - `ModuleTexturesConverter` — `ModuleDefinition` → `BiomeTextures`
-  - Tests unitaires (dimensions, tiles, spawn, transitions)
-- `Nostro` — campagne jouable
-  - Map `the_cells` + `level_3` avec transition bidirectionnelle
-  - Textures stone dungeon (murs, sol, plafond, portes)
-  - Portes avec état ouvert/fermé (`TileTag.DoorOpen`)
+  - `MapFileLoader` — flip Y, cache modules
+  - `LoadedMap`, `DungeonSession`, `ModuleTexturesConverter`
+  - Tests unitaires
+- `Nostro` — maps, textures stone dungeon, portes DoorOpen
 
 ### Modifié
-- `TurnManager.HandleInteraction()` — porte → `IsSolid=false`, `Tag=DoorOpen` (ne disparaît plus)
-- `DungeonRenderer` — gestion `TileTag.DoorOpen` (texture porte ouverte + sol/plafond visible)
+- `TurnManager.HandleInteraction()` — porte → DoorOpen (ne disparaît plus)
+- `DungeonRenderer` — gestion TileTag.DoorOpen
 
 ---
 
@@ -99,18 +127,7 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ### Ajouté
 - `DialogueEngine.Core` — moteur de dialogue complet
-  - `DialogueRunner` avec résolution conditionnelle nœuds + réponses
-  - `nextNodeIds[]` — liste ordonnée de candidats avec fallback
-  - `ScriptRegistry` — conditions et conséquences par clé string
-  - `IDialogueContext` + `IVariableResolver` — substitution `{variable}`
-  - `LocalizedText` — variantes conditionnelles (genre, race…)
-  - Events `OnNodeEntered`, `OnDialogueEnd`, `OnDialogueCancelled`
-  - `CancelConsequenceKey` par nœud
 - `DialogueEngine.Serialization` — JSON camelCase
-  - `LocalizedTextConverter` — format union string | TextVariant[]
 - `DialogueEngine.Editor` — éditeur Avalonia (MVVM, factory-container)
-  - Ouverture / sauvegarde / enregistrer sous
-  - Validation inline, ordonnancement nœuds et réponses, duplication
-- `Sample1` — conversation statique avec branches par rang
-- `Sample2` — jeu vue de dessus, compétences, émotions NPC
+- `Sample1`, `Sample2`
 - 10 tests unitaires

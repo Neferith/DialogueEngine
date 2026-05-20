@@ -22,7 +22,7 @@ public static class FantasyUI
             return;
         }
         // Charger à haute résolution pour garder la qualité à toutes les tailles
-        _font = Raylib.LoadFontEx(config.FontPath, config.FontSize * 3, null, 0);
+        _font = Raylib.LoadFontEx(config.FontPath, 256, null, 0);
         Raylib.SetTextureFilter(_font.Texture, TextureFilter.Bilinear);
         _loaded = true;
     }
@@ -107,6 +107,50 @@ public static class FantasyUI
         DrawText(value + cursor,
                  new Vector2(rect.X + 12, rect.Y + (rect.Height - fontSize) / 2f),
                  fontSize, 1f, colors.Text);
+    }
+
+    /// <summary>Carte sélectionnable. Retourne true si cliquée.</summary>
+    public static bool SelectableCard(Rectangle rect, string title, string? subtitle,
+                                       bool isSelected, RaylibColorScheme colors)
+    {
+        var mouse = Raylib.GetMousePosition();
+        bool hovered = Raylib.CheckCollisionPointRec(mouse, rect);
+        bool clicked = hovered && Raylib.IsMouseButtonReleased(MouseButton.Left);
+
+        // Fond
+        var bg = isSelected ? colors.Primary
+               : hovered ? Brighten(colors.Surface, 15)
+                            : colors.Surface;
+        Raylib.DrawRectangleRounded(rect, 0.15f, 8, bg);
+
+        // Bordure
+        var border = isSelected ? colors.Accent
+                   : hovered ? colors.Primary
+                                : Darken(colors.Surface, 20);
+        Raylib.DrawRectangleRoundedLines(rect, 0.15f, 8,
+            isSelected ? 2f : 1f, border);
+
+        // Titre centré
+        float titleY = subtitle != null
+            ? rect.Y + rect.Height * 0.28f
+            : rect.Y + (rect.Height - 18f) / 2f;
+
+        var titleMeasure = MeasureText(title, 18f);
+        DrawText(title,
+            new Vector2(rect.X + (rect.Width - titleMeasure.X) / 2f, titleY),
+            18f, 1f, isSelected ? colors.Accent : colors.Text);
+
+        // Sous-titre
+        if (subtitle != null)
+        {
+            var subMeasure = MeasureText(subtitle, 12f);
+            DrawText(subtitle,
+                new Vector2(rect.X + (rect.Width - subMeasure.X) / 2f,
+                            rect.Y + rect.Height * 0.58f),
+                12f, 1f, colors.TextMuted);
+        }
+
+        return clicked;
     }
 
     /// <summary>

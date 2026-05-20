@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <PackageReference Include="Raylib-cs" Version="6.1.1" />
     <ProjectReference Include="..\DungeonCrawler.Core\DungeonCrawler.Core.csproj" />
+	  <ProjectReference Include="..\DungeonCrawler.Characters\DungeonCrawler.Characters.csproj" />
 	  <ProjectReference Include="..\DungeonCrawler.MapLoader\DungeonCrawler.MapLoader.csproj" />
   </ItemGroup>
 

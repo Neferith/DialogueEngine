@@ -1,0 +1,14 @@
+{
+  "id": "temple",
+  "name": "Temple",
+  "spriteSize": 16,
+  "tileTypes": [],
+  "entityTypes": [],
+  "textures": {
+    "wall": "textures/temple_wall.png",
+    "floor": "textures/temple_floor.png",
+    "ceiling": "textures/temple_floor.png",
+    "doorClosed": "textures/door_closed.png",
+    "doorOpen": "textures/door_open.png"
+  }
+}

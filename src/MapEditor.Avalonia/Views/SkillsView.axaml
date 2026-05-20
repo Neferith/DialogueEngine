@@ -1,0 +1,76 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MapEditor.Avalonia.ViewModels.CharacterRules"
+			 x:Class="MapEditor.Avalonia.Views.CharacterRules.SkillsView"
+             x:DataType="vm:SkillsViewModel">
+
+  <Grid ColumnDefinitions="220,*" RowDefinitions="Auto,*">
+
+    <!-- Toolbar -->
+    <StackPanel Grid.Row="0" Grid.ColumnSpan="2" Orientation="Horizontal"
+                Spacing="4" Margin="4">
+      <Button Content="+ Skill"    Command="{Binding AddSkillCommand}"/>
+      <Button Content="- Skill"    Command="{Binding RemoveSkillCommand}"/>
+    </StackPanel>
+
+    <!-- Liste -->
+    <ListBox Grid.Row="1" Grid.Column="0"
+             ItemsSource="{Binding Skills}"
+             SelectedItem="{Binding SelectedSkill}"
+             Margin="4">
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="vm:SkillViewModel">
+          <TextBlock Text="{Binding Name}"/>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <!-- Éditeur skill -->
+    <ScrollViewer Grid.Row="1" Grid.Column="1">
+      <StackPanel Spacing="8" Margin="8"
+                  IsVisible="{Binding SelectedSkill, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <Grid ColumnDefinitions="120,*" RowDefinitions="Auto,Auto,Auto,Auto"
+              DataContext="{Binding SelectedSkill}">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="Id"          VerticalAlignment="Center"/>
+          <TextBox   Grid.Row="0" Grid.Column="1" Text="{Binding Id}"/>
+          <TextBlock Grid.Row="1" Grid.Column="0" Text="Nom"         VerticalAlignment="Center" Margin="0,4,0,0"/>
+          <TextBox   Grid.Row="1" Grid.Column="1" Text="{Binding Name}"        Margin="0,4,0,0"/>
+          <TextBlock Grid.Row="2" Grid.Column="0" Text="Type"        VerticalAlignment="Center" Margin="0,4,0,0"/>
+          <TextBox   Grid.Row="2" Grid.Column="1" Text="{Binding Type}"        Margin="0,4,0,0"/>
+          <TextBlock Grid.Row="3" Grid.Column="0" Text="Description" VerticalAlignment="Center" Margin="0,4,0,0"/>
+          <TextBox   Grid.Row="3" Grid.Column="1" Text="{Binding Description}"
+                     AcceptsReturn="True" Height="60" Margin="0,4,0,0"/>
+        </Grid>
+
+		  <TextBlock Text="Modificateurs d'attributs" Classes="SectionHeader" Margin="0,8,0,0"/>
+		  <WrapPanel Orientation="Horizontal">
+			  <StackPanel Margin="0,0,16,8">
+				  <TextBlock Text="Musculature" FontSize="11"/>
+				  <NumericUpDown Value="{Binding Musculature}"
+								 Minimum="-10" Maximum="10" Increment="1"
+								 FormatString="0" Width="120"/>
+			  </StackPanel>
+			  <StackPanel Margin="0,0,16,8">
+				  <TextBlock Text="Flexibilité" FontSize="11"/>
+				  <NumericUpDown Value="{Binding Flexibility}"
+								 Minimum="-10" Maximum="10" Increment="1"
+								 FormatString="0" Width="120"/>
+			  </StackPanel>
+			  <StackPanel Margin="0,0,16,8">
+				  <TextBlock Text="Intelligence" FontSize="11"/>
+				  <NumericUpDown Value="{Binding Brain}"
+								 Minimum="-10" Maximum="10" Increment="1"
+								 FormatString="0" Width="120"/>
+			  </StackPanel>
+			  <StackPanel Margin="0,0,16,8">
+				  <TextBlock Text="Vitalité" FontSize="11"/>
+				  <NumericUpDown Value="{Binding Vitality}"
+								 Minimum="-10" Maximum="10" Increment="1"
+								 FormatString="0" Width="120"/>
+			  </StackPanel>
+		  </WrapPanel>
+      </StackPanel>
+    </ScrollViewer>
+
+  </Grid>
+</UserControl>

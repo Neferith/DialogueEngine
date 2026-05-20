@@ -11,6 +11,19 @@ public partial class MainWindow : Window
     {
         AvaloniaXamlLoader.Load(this);
         this.Loaded += OnLoaded;
+
+        DataContextChanged += (_, _) =>
+        {
+            if (DataContext is EditorViewModel vm)
+                vm.CharacterRulesOpenRequested += () =>
+                {
+                    var window = new CharacterRulesWindow
+                    {
+                        DataContext = vm.CharacterRules
+                    };
+                    window.Show(this);
+                };
+        };
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)

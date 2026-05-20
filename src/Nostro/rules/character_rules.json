@@ -1,0 +1,349 @@
+{
+  "backgroundTypes": [
+    {
+      "id": "profession",
+      "name": "Profession",
+      "description": "Le m\u00E9tier exerc\u00E9 avant l\u0027aventure.",
+      "backgrounds": [
+        {
+          "id": "farmer",
+          "name": "Paysan",
+          "description": "Origine simple, travailleur et proche de la terre.",
+          "typeId": "profession",
+          "attributesModifier": {
+            "musculature": 2,
+            "flexibility": 0,
+            "brain": -3,
+            "vitality": 2
+          },
+          "startingSkillIds": [
+            "persuasion",
+            "common_language",
+            "improvised_weapon",
+            "survival"
+          ],
+          "requirement": null
+        },
+        {
+          "id": "mercenary",
+          "name": "Mercenaire",
+          "description": "Combattant pour de l\u0027or, sans ma\u00EEtre ni foi.",
+          "typeId": "profession",
+          "attributesModifier": {
+            "musculature": 2,
+            "flexibility": 0,
+            "brain": -2,
+            "vitality": 2
+          },
+          "startingSkillIds": [
+            "persuasion",
+            "common_language",
+            "light_weapon",
+            "unlocking"
+          ],
+          "requirement": null
+        },
+        {
+          "id": "scholar",
+          "name": "\u00C9rudit",
+          "description": "Lettr\u00E9 des biblioth\u00E8ques et des arcanes.",
+          "typeId": "profession",
+          "attributesModifier": {
+            "musculature": -2,
+            "flexibility": 0,
+            "brain": 3,
+            "vitality": -1
+          },
+          "startingSkillIds": [
+            "reading",
+            "ancient_language",
+            "alchemy"
+          ],
+          "requirement": null
+        },
+        {
+          "id": "thief",
+          "name": "Voleur",
+          "description": "Les doigts lestes et la conscience flexible.",
+          "typeId": "profession",
+          "attributesModifier": {
+            "musculature": 0,
+            "flexibility": 2,
+            "brain": 1,
+            "vitality": -1
+          },
+          "startingSkillIds": [
+            "unlocking",
+            "stealth",
+            "light_weapon"
+          ],
+          "requirement": null
+        },
+        {
+          "id": "healer",
+          "name": "Gu\u00E9risseur",
+          "description": "Soignant des corps et des \u00E2mes, form\u00E9 aux herbes et aux rem\u00E8des.",
+          "typeId": "profession",
+          "attributesModifier": {
+            "musculature": -1,
+            "flexibility": 1,
+            "brain": 2,
+            "vitality": 0
+          },
+          "startingSkillIds": [
+            "alchemy",
+            "survival",
+            "persuasion"
+          ],
+          "requirement": null
+        },
+        {
+          "id": "hunter",
+          "name": "Chasseur",
+          "description": "Traqueur solitaire habitu\u00E9 aux for\u00EAts et aux b\u00EAtes sauvages.",
+          "typeId": "profession",
+          "attributesModifier": {
+            "musculature": 1,
+            "flexibility": 2,
+            "brain": 0,
+            "vitality": 1
+          },
+          "startingSkillIds": [
+            "survival",
+            "stealth",
+            "distance_weapon"
+          ],
+          "requirement": null
+        }
+      ]
+    },
+    {
+      "id": "antecedent",
+      "name": "Ant\u00E9c\u00E9dent",
+      "description": "Un \u00E9v\u00E9nement marquant qui a forg\u00E9 le personnage.",
+      "backgrounds": [
+        {
+          "id": "heros_child",
+          "name": "Enfant de h\u00E9ros",
+          "description": "On attend beaucoup de toi, \u00E0 cause d\u0027un parent c\u00E9l\u00E8bre pour ses exploits.",
+          "typeId": "antecedent",
+          "attributesModifier": {
+            "musculature": 1,
+            "flexibility": 2,
+            "brain": 0,
+            "vitality": 0
+          },
+          "startingSkillIds": [
+            "light_weapon",
+            "reading"
+          ],
+          "requirement": {
+            "allowedSizes": [
+              "Dwarf",
+              "Small",
+              "Medium",
+              "Tall",
+              "Large"
+            ]
+          }
+        },
+        {
+          "id": "demonic_heritage",
+          "name": "H\u00E9ritage d\u00E9moniaque",
+          "description": "Le sang d\u0027une cr\u00E9ature des abysses coule dans tes veines.",
+          "typeId": "antecedent",
+          "attributesModifier": {
+            "musculature": 1,
+            "flexibility": 0,
+            "brain": 1,
+            "vitality": 1
+          },
+          "startingSkillIds": [
+            "intimidation"
+          ],
+          "requirement": null
+        },
+        {
+          "id": "divine_heritage",
+          "name": "H\u00E9ritage divin",
+          "description": "Une faveur divine ou une lign\u00E9e b\u00E9nie te conf\u00E8re une gr\u00E2ce particuli\u00E8re.",
+          "typeId": "antecedent",
+          "attributesModifier": {
+            "musculature": 0,
+            "flexibility": 1,
+            "brain": 1,
+            "vitality": 2
+          },
+          "startingSkillIds": [
+            "persuasion",
+            "reading"
+          ],
+          "requirement": null
+        },
+        {
+          "id": "sickly_child",
+          "name": "Enfant maladif",
+          "description": "Une enfance marqu\u00E9e par la maladie t\u0027a rendu plus prudent et r\u00E9silient.",
+          "typeId": "antecedent",
+          "attributesModifier": {
+            "musculature": -1,
+            "flexibility": 0,
+            "brain": 2,
+            "vitality": -1
+          },
+          "startingSkillIds": [
+            "alchemy",
+            "survival"
+          ],
+          "requirement": null
+        }
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "persuasion",
+      "name": "Persuasion",
+      "type": "Social",
+      "description": "Convaincre par les mots et le charme.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 0,
+        "brain": 1,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "intimidation",
+      "name": "Intimidation",
+      "type": "Social",
+      "description": "Convaincre par la peur et la menace.",
+      "modifier": {
+        "musculature": 1,
+        "flexibility": 0,
+        "brain": 0,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "common_language",
+      "name": "Langue commune",
+      "type": "Knowledge",
+      "description": "Lire et \u00E9crire la langue commune.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 0,
+        "brain": 1,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "ancient_language",
+      "name": "Langue ancienne",
+      "type": "Knowledge",
+      "description": "D\u00E9chiffrer les textes et inscriptions anciens.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 0,
+        "brain": 1,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "reading",
+      "name": "Lecture",
+      "type": "Knowledge",
+      "description": "Lire et comprendre les textes complexes.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 0,
+        "brain": 1,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "light_weapon",
+      "name": "Arme l\u00E9g\u00E8re",
+      "type": "Weapon",
+      "description": "Ma\u00EEtrise des armes l\u00E9g\u00E8res : dague, \u00E9p\u00E9e courte.",
+      "modifier": {
+        "musculature": 1,
+        "flexibility": 0,
+        "brain": 0,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "improvised_weapon",
+      "name": "Arme improvis\u00E9e",
+      "type": "Weapon",
+      "description": "Se battre efficacement avec n\u0027importe quel objet.",
+      "modifier": {
+        "musculature": 1,
+        "flexibility": 0,
+        "brain": 0,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "distance_weapon",
+      "name": "Arme \u00E0 distance",
+      "type": "Distance",
+      "description": "Ma\u00EEtrise des arcs, arbal\u00E8tes et armes de jet.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 1,
+        "brain": 0,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "unlocking",
+      "name": "Crochetage",
+      "type": "Technical",
+      "description": "Ouvrir les serrures sans la cl\u00E9.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 1,
+        "brain": 0,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "stealth",
+      "name": "Discr\u00E9tion",
+      "type": "Technical",
+      "description": "Se d\u00E9placer sans bruit et sans \u00EAtre vu.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 1,
+        "brain": 0,
+        "vitality": 0
+      }
+    },
+    {
+      "id": "survival",
+      "name": "Survie",
+      "type": "Technical",
+      "description": "Survivre en milieu hostile, trouver eau et nourriture.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 0,
+        "brain": 1,
+        "vitality": 1
+      }
+    },
+    {
+      "id": "alchemy",
+      "name": "Alchimie",
+      "type": "Technical",
+      "description": "Pr\u00E9parer potions, rem\u00E8des et substances diverses.",
+      "modifier": {
+        "musculature": 0,
+        "flexibility": 0,
+        "brain": 2,
+        "vitality": 0
+      }
+    }
+  ]
+}
