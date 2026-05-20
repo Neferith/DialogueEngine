@@ -10,6 +10,8 @@ public class CampaignProject
 
     public string CharacterRulesPath { get; set; } = "rules/character_rules.json";
 
+    public string EventsPath { get; set; } = "events";
+
     // ── Runtime (non sérialisé) ───────────────────────────────────────────────
 
     [JsonIgnore]
@@ -35,4 +37,10 @@ public class CampaignProject
     public string AbsoluteCharacterRulesPath =>
     ProjectDirectory != null
             ? Path.Combine(ProjectDirectory, CharacterRulesPath): CharacterRulesPath;
+
+    [JsonIgnore]
+    public string AbsoluteEventsPath =>
+    ProjectDirectory != null
+        ? Path.Combine(ProjectDirectory, EventsPath)
+        : EventsPath;
 }

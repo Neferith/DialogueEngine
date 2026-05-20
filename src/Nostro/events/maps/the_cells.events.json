@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "id": "intro",
+      "trigger": "MapEnter",
+      "mapId": "the_cells",
+      "condition": { "flagNotSet": "intro_played" },
+      "effects": [
+        {
+          "scriptId": "SetFlag",
+          "params": { "flagId": "intro_played" }
+        },
+        {
+          "scriptId": "StartDialogue",
+          "params": { "dialogueId": "intro_dialogue" }
+        }
+      ]
+    }
+  ]
+}

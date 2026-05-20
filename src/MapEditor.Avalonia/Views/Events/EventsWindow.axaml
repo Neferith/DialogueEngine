@@ -1,0 +1,72 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MapEditor.Avalonia.ViewModels.Events"
+        xmlns:views="using:MapEditor.Avalonia.Views.Events"
+        x:Class="MapEditor.Avalonia.Views.Events.EventsWindow"
+        x:DataType="vm:EventsViewModel"
+        Title="Éditeur d'events"
+        Width="900" Height="680"
+        WindowStartupLocation="CenterOwner">
+
+  <Grid RowDefinitions="Auto,*">
+
+    <!-- Toolbar -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4" Margin="4">
+      <Button Content="+ Event"      Command="{Binding AddEventCommand}"/>
+      <Button Content="- Event"      Command="{Binding RemoveEventCommand}"/>
+      <Separator/>
+      <Button Content="+ Fichier global"  Command="{Binding NewGlobalFileCommand}"/>
+      <TextBox x:Name="NewMapIdBox" Watermark="map id..." Width="120"/>
+      <Button Content="+ Fichier map"
+              Click="OnNewMapFileClick"/>
+      <Separator/>
+      <Button Content="💾 Sauvegarder" Command="{Binding SaveCommand}"/>
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="200,200,*">
+
+      <!-- Fichiers -->
+      <DockPanel Grid.Column="0" Margin="4">
+        <TextBlock DockPanel.Dock="Top" Text="Fichiers" Classes="SectionHeader"/>
+        <ListBox x:Name="FilesList"
+                 ItemsSource="{Binding Files}"
+                 SelectionChanged="OnFileSelected">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:EventFileViewModel">
+              <TextBlock Text="{Binding DisplayName}"/>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <!-- Events du fichier -->
+      <DockPanel Grid.Column="1" Margin="4">
+        <TextBlock DockPanel.Dock="Top"
+                   Text="{Binding CurrentFile}"
+                   Classes="SectionHeader"/>
+        <ListBox ItemsSource="{Binding Events}"
+                 SelectedItem="{Binding SelectedEvent}">
+          <ListBox.ItemTemplate>
+            <DataTemplate DataType="vm:EventViewModel">
+              <StackPanel>
+                <TextBlock Text="{Binding Id}" FontWeight="SemiBold"/>
+                <TextBlock Text="{Binding Trigger}" FontSize="11" Foreground="#888"/>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+
+      <!-- Éditeur event -->
+      <ContentControl Grid.Column="2" Margin="4"
+                      Content="{Binding SelectedEvent}">
+        <ContentControl.DataTemplates>
+          <DataTemplate DataType="vm:EventViewModel">
+            <views:EventEditorView/>
+          </DataTemplate>
+        </ContentControl.DataTemplates>
+      </ContentControl>
+
+    </Grid>
+  </Grid>
+</Window>

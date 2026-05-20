@@ -23,8 +23,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
 	  <None Update="rules\character_rules.json">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+
+	  <Content Include="events\**\*">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 
 	  <Content Include="dialogues\**\*">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>

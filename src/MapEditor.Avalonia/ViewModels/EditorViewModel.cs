@@ -48,6 +48,8 @@ public partial class EditorViewModel : ObservableObject
     public bool IsEraseActive       => ActiveTool == EditorTool.Erase;
     public bool IsSelectActive      => ActiveTool == EditorTool.Select;
 
+    public event Action? EventsOpenRequested;
+
     public EditorViewModel(IMapSerializerFactory serFactory,
                            IModuleLoaderFactory  loaderFactory,
                            IDialogService        dialog)
@@ -301,6 +303,12 @@ public partial class EditorViewModel : ObservableObject
         _currentFilePath = summary.FilePath;
         OpenMap(mapFile, module);
         StatusText = $"Map «{mapFile.Id}» ouverte.";
+    }
+
+    [RelayCommand(CanExecute = nameof(HasProject))]
+    private void OpenEvents()
+    {
+        EventsOpenRequested?.Invoke();
     }
 
     // ── Canvas interaction (called by MapCanvasControl) ───────────────────────
