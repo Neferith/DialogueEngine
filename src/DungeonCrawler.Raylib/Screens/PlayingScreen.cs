@@ -48,6 +48,7 @@ public class PlayingScreen : IGameScreen
         _anim = new AnimationState();
         _currentView = _session.GetView();
 
+        DungeonRenderer.LoadItemTextures(_services.Items);
         _session.NotifyMapEntered();
     }
 
