@@ -39,12 +39,14 @@ public class Character
     // ── Initialisation ────────────────────────────────────────────────────────
 
     public static Character Create(
-        CharacterDescription description,
-        CharacterAttributes attributes,
-        string factionId = "")
+    CharacterDescription description,
+    CharacterAttributes attributes,
+    string factionId = "",
+    string? id = null)
     {
         var c = new Character
         {
+            Id = id ?? Guid.NewGuid().ToString(),
             FactionId = factionId,
             Attributes = attributes,
             Description = description,
