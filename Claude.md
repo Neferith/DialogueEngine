@@ -151,6 +151,37 @@ if (!_anim.IsPlaying && !dialogueBlocking && !paused)
  
 **`Tile.FloorInventory`** : chargé depuis `tileData.Items` dans `MapFileLoader.BuildLoadedMap()`
 
+**`Inventory`** : dans `DungeonCrawler.Core`. Mutable.
+- `DungeonCrawler.Characters` et `DungeonCrawler.Persistence` référencent désormais `DungeonCrawler.Core`
+- `Character.Inventory = new Inventory { MaxSlots = 10 }`
+**`WorldState.TileInventoryOverrides`** :
+```
+Dict<mapId, Dict<"x_y", Dict<itemId, qty>>>
+```
+- Toujours stocker même si vide — vide = "items retirés"
+- `inventory.IsEmpty` → stocker `{}` (ne pas supprimer la clé !)
+- Appliqué dans `DungeonSession` constructeur + `CheckTransition`
+
+---
+## Sprites items au sol (DungeonRenderer)
+
+**Réglages statiques** (modifiables depuis Program.cs/NostroConfig) :
+```csharp
+DungeonRenderer.ItemDepthT       // position profondeur (0=near, 1=far), défaut 0.70f
+DungeonRenderer.ItemWidthRatio   // taille / largeur cellule, défaut 0.18f
+DungeonRenderer.ItemCloseSize    // taille close-up px, défaut 140f
+DungeonRenderer.ItemOffsetX      // décalage horizontal (-1 à +1), défaut 0f
+```
+ 
+**Sprite** : `SpritePath` dans `ItemDefinition` → chargé via `LoadItemTextures(registry)`.
+Fallback : `DrawPotionAt()` procédural (fiole rouge pixel art).
+ 
+**Positionnement** : interpolation perspective à `ItemDepthT` le long de la cellule :
+```csharp
+float baseY   = sq.BottomForward + t * (sq.BottomBack - sq.BottomForward);
+float midLeft = sq.LeftForward   + t * (sq.LeftBack   - sq.LeftForward);
+```
+
 ---
 
 ## Système de personnages (DungeonCrawler.Characters)
@@ -275,3 +306,8 @@ Sauvegardé dans `SaveFile.WorldState`. Restauré au chargement.
 - `ItemLoader` va dans `DungeonCrawler.MapLoader` (pas Core) car référence MapEditor.Core
 - `EventLoader` va dans `DungeonCrawler.EventSystems` (ref MapEditor.Core pour EventSerializer)
 - `InitializeItems` doit être appelé dans `OpenProject` ET `OpenRecentProject`
+- `WorldState.TileInventoryOverrides` : ne jamais supprimer la clé quand inventory vide — stocker `{}` pour que `ApplyTileInventoryOverrides` puisse vider la tile
+- `PickupOverlay.OnPickup` est `Func<string,int,bool>` — retirer de la tile AVANT d'invoquer, rollback si retour `false`
+- `DungeonCrawler.Characters` référence maintenant `DungeonCrawler.Core` (ajout récent)
+- `DungeonCrawler.Persistence` référence maintenant `DungeonCrawler.Core` (ajout récent)
+ 

@@ -22,10 +22,10 @@
 - [x] `BiomeTextures` — record pour les chemins de textures par biome
 
 ### DungeonCrawler.Persistence ← projet séparé (extrait de Core.Persist)
-- [x] `SaveFile`, `LocationSave`, `CharacterSaveData`, `InjurySaveData`
+- [x] `SaveFile`, `LocationSave`, `CharacterSaveData`, `InjurySaveData`, `Dictionary<string, int> Inventory`
 - [x] `SaveManager` — 5 slots, %AppData%
 - [x] `NpcState` — Hostility, Affinity, IsAlive, IsRecruited, Flags
-- [x] `WorldState` — Flags (HashSet), Variables (Dict<string,int>), Npcs (Dict<string,NpcState>)
+- [x] `WorldState` — Flags (HashSet), Variables (Dict<string,int>), Npcs (Dict<string,NpcState>), `TileInventoryOverrides` + helpers `SetTileInventory` / `TryGetTileInventory`
 
 ### DungeonCrawler.Characters
 - [x] `CharacterAttribute`, `CharacterAttributes`, `AttributesModifier`
@@ -34,7 +34,7 @@
 - [x] `Background`, `BackgroundType`, `BackgroundLoader`, `CharacterRules`
 - [x] `Skill`, `CharacterSkills`
 - [x] `Injury` — hiérarchie sealed Physical/Mental/Energy avec Severity
-- [x] `Character` + stats dérivées (MaxHp, QAm, QAc, QDp, QDe) + quotients finaux
+- [x] `Character` + stats dérivées (MaxHp, QAm, QAc, QDp, QDe) + quotients finaux + `Inventory { get; } = new Inventory { MaxSlots = 10 }`
 - [x] `CharacterState` — WithDamage, WithHeal, WithInjury
 - [x] `CharacterBuilder` — IsLastStep, IsComplete, Build()
 - [x] Tests : AttributeTests, CharacterStatsTests, CreationChainTests, CharacterBuilderTests
@@ -65,6 +65,11 @@
 - [x] `CampaignConfig` + `RaylibColorScheme` (record) — config par campagne
 - [x] `ActiveSave(SaveManager, SlotIndex, HeroName, List<Character>, WorldState)` — contexte en cours de partie
 - [x] `CharacterMapper` — Character ↔ CharacterSaveData
+- [x] `PickupOverlay` — menu ramassage (G), liste items tile courante, `Func<string,int,bool> OnPickup`
+- [x] `DungeonRenderer.LoadItemTextures` — cache textures items, fallback procédural `DrawPotionAt`
+- [x] `DungeonRenderer.DrawFloorItem` — sprite billboard item au sol (perspective correcte)
+- [x] `DungeonRenderer.DrawCloseFloorItem` — close-up quand joueur sur la tile
+- [x] Réglages statiques : `ItemDepthT`, `ItemWidthRatio`, `ItemCloseSize`, `ItemOffsetX`
 
 ### DungeonCrawler.MapLoader
 - [x] `MapFileLoader` — charge un `.map.json` + module → `DungeonMap`
@@ -117,7 +122,7 @@
 - [x] Event intro (MapEnter the_cells, one-shot via flag intro_played)
 - [x] `GameServices` configuré dans `Program.cs`
 - [x] Pipeline complet : éditeur → JSON → MapLoader → jeu
-- [x] `events/maps/the_cells.events.json`, `events/maps/the_cells.events.json` — event intro MapEnter one-shot (migré depuis Program.cs)
+- [] `events/maps/the_cells.events.json`, `events/maps/the_cells.events.json` — event intro MapEnter one-shot (migré depuis Program.cs)
 - [x] `items/items.json` — 3 items (nostro_cross, rusty_key, healing_herb)
 
 ---
@@ -136,6 +141,8 @@
 - [ ] Erreurs tests `DungeonCrawler.MapLoader.Tests` (renommage CharacterAttribute)
 - [ ] Renommage de la solution (de DialogueEngine2)
 - [ ] `WorldState.TileInventoryOverrides` — persistance inventaires tiles non implémentée
+- [ ] UX inventaire à améliorer (drop quantité partielle, confirmation, etc.)
+- [ ] Sprites items PNG (actuellement fallback procédural pour tous les items)
 
 ---
 
@@ -151,11 +158,11 @@
 - [ ] Système de factions NPC
 - [ ] Branchement DialogueEngine sur les NPC (dialogue NPC avec portrait)
 - [ ] Persistance état du monde (portes ouvertes, items ramassés)
-- [ ] Sprites billboard items dans `DungeonRenderer` (items visibles au sol en 3D)
-- [ ] `PickupOverlay` — menu ramassage (touche dédiée, items sur tile courante)
-- [ ] `GiveItemAction` complet → ajoute à `Character.Inventory`
-- [ ] `WorldState.TileInventoryOverrides` — persister l'état des inventaires de tiles
-- [ ] Affichage inventaire dans `StatsScreen`
+- [x] Sprites billboard items dans `DungeonRenderer` (items visibles au sol en 3D)
+- [x] `PickupOverlay` — menu ramassage (touche dédiée, items sur tile courante)
+- [x] `GiveItemAction` complet → ajoute à `Character.Inventory`
+- [x] `WorldState.TileInventoryOverrides` — persister l'état des inventaires de tiles
+- [x] Affichage inventaire dans `StatsScreen`
 - [ ] Item à ramasser (GiveItemAction complet)
 - [ ] Rencontre : combat / dialogue / recrutement
 
