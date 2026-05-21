@@ -53,6 +53,11 @@ public class DungeonSession
         CurrentBiomeTextures = initialModule != null
             ? ModuleTexturesConverter.Convert(initialModule)
             : null;
+
+        if (_world != null)
+            ApplyTileInventoryOverrides(initialMap, _world);
+
+        Console.WriteLine($"[Session] Overrides appliqués à la map initiale : {initialMap.Map.Name}");
     }
 
     // ── API exposée au game loop ──────────────────────────────────────────────
@@ -126,6 +131,9 @@ public class DungeonSession
         var newTurns = new TurnManager(newRunner, newEntities);
 
         CurrentMap = newMap;
+        // Appliquer les overrides d'inventaires de tiles
+        if (_world != null)
+            ApplyTileInventoryOverrides(newMap, _world);
         Runner = newRunner;
         Turns = newTurns;
 
@@ -135,6 +143,29 @@ public class DungeonSession
 
         // Déclencher MapEnter sur la nouvelle map
         FireEvent(EventTrigger.MapEnter);
+    }
+
+    private static void ApplyTileInventoryOverrides(LoadedMap map, WorldState world)
+    {
+        if (!world.TileInventoryOverrides.TryGetValue(map.Map.Name, out var overrides))
+            return;
+
+        Console.WriteLine($"[Override] Application sur {map.Map.Name} — {overrides.Count} tile(s)");
+        foreach (var (key, items) in overrides)
+        {
+            Console.WriteLine($"[Override] Tile {key} : {string.Join(", ", items.Select(kv => $"{kv.Key}×{kv.Value}"))}");
+            var parts = key.Split('_');
+            if (parts.Length != 2) continue;
+            if (!int.TryParse(parts[0], out var x) ||
+                !int.TryParse(parts[1], out var y)) continue;
+
+            var tile = map.Map.GetTile(x, y);
+            if (tile == null) continue;
+
+            tile.FloorInventory.Clear();
+            foreach (var (itemId, qty) in items)
+                tile.FloorInventory.Add(itemId, qty);
+        }
     }
 
     private static Direction ParseDirection(string orientation) =>

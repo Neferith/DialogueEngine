@@ -1,6 +1,7 @@
 ﻿using DungeonCrawler.Characters.Backgrounds;
 using DungeonCrawler.Characters.Creation;
 using DungeonCrawler.Characters.Skills;
+using DungeonCrawler.Core;
 
 namespace DungeonCrawler.Characters.Models;
 
@@ -30,6 +31,8 @@ public class Character
     public CharacterLevel Level { get; init; } = new();
     public CharacterSkills Skills { get; init; } = new();
     public CharacterState State { get; private set; } = null!;
+
+    public Inventory Inventory { get; } = new Inventory { MaxSlots = 10 };
 
     public const int BasePv = 15;
 
