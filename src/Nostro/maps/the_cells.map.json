@@ -14,7 +14,8 @@
         "y": 10
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -22,7 +23,8 @@
         "y": 9
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -30,7 +32,8 @@
         "y": 10
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -38,7 +41,8 @@
         "y": 10
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -46,7 +50,8 @@
         "y": 11
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -54,7 +59,8 @@
         "y": 11
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -62,7 +68,8 @@
         "y": 10
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -70,7 +77,8 @@
         "y": 11
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -78,7 +86,8 @@
         "y": 9
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -86,7 +95,8 @@
         "y": 5
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -94,7 +104,8 @@
         "y": 8
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -102,7 +113,13 @@
         "y": 5
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": [
+        {
+          "id": "nostro_cross",
+          "quantity": 1
+        }
+      ]
     },
     {
       "position": {
@@ -110,7 +127,8 @@
         "y": 6
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -118,7 +136,8 @@
         "y": 6
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -126,7 +145,8 @@
         "y": 5
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -134,7 +154,8 @@
         "y": 7
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -142,7 +163,8 @@
         "y": 8
       },
       "tileTypeId": "STONE_FLOOR",
-      "walkable": true
+      "walkable": true,
+      "items": []
     },
     {
       "position": {
@@ -158,7 +180,8 @@
           "y": 1
         },
         "targetOrientation": "SOUTH"
-      }
+      },
+      "items": []
     }
   ],
   "entities": [

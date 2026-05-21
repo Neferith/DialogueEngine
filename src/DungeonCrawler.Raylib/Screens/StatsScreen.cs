@@ -252,6 +252,66 @@ public class StatsScreen : IGameScreen
                 afterCols += 20f;
             }
         }
+
+        DrawSeparator(rect, afterCols, colors);
+        afterCols += 20f;
+
+        // ── Inventaire ────────────────────────────────────────────────────────────
+        FantasyUI.Label("Inventaire", x, afterCols, 16f, colors,
+            colorOverride: colors.Accent);
+
+        var slotInfo = $"({c.Inventory.SlotCount}/{c.Inventory.MaxSlots ?? 0})";
+        var slotW = FantasyUI.MeasureText(slotInfo, 13f).X;
+        FantasyUI.Label(slotInfo, rect.X + rect.Width - 20 - slotW,
+            afterCols + 2f, 13f, colors, colorOverride: colors.TextMuted);
+        afterCols += 26f;
+
+        if (c.Inventory.IsEmpty)
+        {
+            FantasyUI.Label("Vide", x, afterCols, 14f, colors,
+                colorOverride: colors.TextMuted);
+        }
+        else
+        {
+            var mouse = Raylib.GetMousePosition();
+            var clicked = Raylib.IsMouseButtonReleased(MouseButton.Left);
+            float itemW = rect.Width - 40f;
+
+            foreach (var (itemId, qty) in c.Inventory.Items.ToList())
+            {
+                var def = _services.Items.Get(itemId);
+                var name = def?.Title ?? itemId;
+                var label = qty > 1 ? $"▸ {name}  ×{qty}  [poser]" : $"▸ {name}  [poser]";
+                var itemR = new Rectangle(x, afterCols - 2f, itemW, 20f);
+                var hover = Raylib.CheckCollisionPointRec(mouse, itemR);
+
+                if (hover)
+                    Raylib.DrawRectangleRounded(itemR, 0.2f, 4,
+                        new Color(80, 60, 30, 120));
+
+                FantasyUI.Label(label, x, afterCols, 13f, colors,
+                    colorOverride: hover ? colors.Accent : colors.Text);
+
+                if (hover && clicked)
+                    DropItem(c, itemId, qty);
+
+                afterCols += 20f;
+            }
+        }
+    }
+
+    private void DropItem(Character c, string itemId, int qty)
+    {
+        var pos = _session.Party.Position;
+        var tile = _session.CurrentMap.Map.GetTile(pos);
+        if (tile == null) return;
+
+        c.Inventory.Remove(itemId, qty);
+        tile.FloorInventory.Add(itemId, qty);
+
+        // Persister dans WorldState
+        var mapId = _session.CurrentMap.Map.Name;
+        _activeSave.World.SetTileInventory(mapId, pos.X, pos.Y, tile.FloorInventory);
     }
 
     // ── Helpers de rendu ──────────────────────────────────────────────────────

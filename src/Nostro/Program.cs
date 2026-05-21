@@ -1,4 +1,5 @@
 ﻿using DungeonCrawler.EventSystems;
+using DungeonCrawler.MapLoader;
 using DungeonCrawler.Persistence;
 using DungeonCrawler.RaylibGame;
 using Nostro;
@@ -15,6 +16,13 @@ var eventSystem = new EventSystem(scriptRegistry);
 var eventLoader = new EventLoader();
 eventLoader.LoadInto(eventSystem, config.EventsPath, scriptRegistry);
 
+var itemLoader = new ItemLoader();
+var itemRegistry = itemLoader.Load(config.ItemsPath);
+
 // ── Lancement ─────────────────────────────────────────────────────────────────
-var services = new GameServices(saveManager, eventSystem, scriptRegistry);
+var services = new GameServices(
+    saveManager, 
+    eventSystem, 
+    scriptRegistry, 
+    itemRegistry);
 new GameScreenRunner(new MainMenuScreen(config, services), config).Run();

@@ -3,7 +3,9 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using MapEditor.Avalonia.ViewModels;
 using MapEditor.Avalonia.ViewModels.Events;
+using MapEditor.Avalonia.ViewModels.Items;
 using MapEditor.Avalonia.Views.Events;
+using MapEditor.Avalonia.Views.Items;
 
 namespace MapEditor.Avalonia.Views;
 
@@ -33,6 +35,15 @@ public partial class MainWindow : Window
                 var window = new EventsWindow { DataContext = eventsVm };
                 window.Show(this);
             };
+                vm.ItemsOpenRequested += () =>
+                {
+                    if (vm.ActiveProject == null) return;
+                    var window = new ItemsWindow
+                    {
+                        DataContext = new ItemsViewModel(vm.ActiveProject.AbsoluteItemsPath)
+                    };
+                    window.Show(this);
+                };
             }
         };
     }

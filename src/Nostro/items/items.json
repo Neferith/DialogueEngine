@@ -1,0 +1,31 @@
+{
+  "items": [
+    {
+      "id": "nostro_cross",
+      "title": "La croix des n\u00F4tres",
+      "description": "Une \u00E9trange croix grav\u00E9e de symboles anciens.",
+      "type": "Quest",
+      "stackable": false,
+      "maxStack": 1,
+      "spritePath": ""
+    },
+    {
+      "id": "rusty_key",
+      "title": "Cl\u00E9 rouill\u00E9e",
+      "description": "Une vieille cl\u00E9 qui pourrait ouvrir quelque chose.",
+      "type": "Other",
+      "stackable": false,
+      "maxStack": 1,
+      "spritePath": ""
+    },
+    {
+      "id": "healing_herb",
+      "title": "Herbe m\u00E9dicinale",
+      "description": "Une plante aux vertus curatives.",
+      "type": "Other",
+      "stackable": true,
+      "maxStack": 10,
+      "spritePath": ""
+    }
+  ]
+}

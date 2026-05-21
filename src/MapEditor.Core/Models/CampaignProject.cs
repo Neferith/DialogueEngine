@@ -12,6 +12,8 @@ public class CampaignProject
 
     public string EventsPath { get; set; } = "events";
 
+    public string ItemsPath { get; init; } = "items/items.json";
+
     // ── Runtime (non sérialisé) ───────────────────────────────────────────────
 
     [JsonIgnore]
@@ -43,4 +45,11 @@ public class CampaignProject
     ProjectDirectory != null
         ? Path.Combine(ProjectDirectory, EventsPath)
         : EventsPath;
+
+
+    [JsonIgnore]
+    public string AbsoluteItemsPath =>
+ProjectDirectory != null
+    ? Path.Combine(ProjectDirectory, ItemsPath)
+    : ItemsPath;
 }

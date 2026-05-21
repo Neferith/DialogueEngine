@@ -20,6 +20,7 @@ public class PlayingScreen : IGameScreen
 
     private readonly DialogueOverlay _dialogueOverlay;
     private readonly PauseOverlay _pauseOverlay;
+    private readonly PickupOverlay _pickupOverlay;
     private IGameScreen? _nextScreen;
 
     private AnimationState _anim = new();
@@ -34,6 +35,9 @@ public class PlayingScreen : IGameScreen
 
         _dialogueOverlay = new DialogueOverlay(_config);
         _pauseOverlay = new PauseOverlay(_config, _activeSave, services);
+
+        _pickupOverlay = new PickupOverlay(_config, _services.Items);
+        _pickupOverlay.OnPickup += OnItemPickedUp;
     }
 
     // ── IGameScreen ───────────────────────────────────────────────────────────
@@ -48,6 +52,7 @@ public class PlayingScreen : IGameScreen
         _anim = new AnimationState();
         _currentView = _session.GetView();
 
+        DungeonRenderer.LoadItemTextures(_services.Items);
         _session.NotifyMapEntered();
     }
 
@@ -63,6 +68,8 @@ public class PlayingScreen : IGameScreen
 
         _pauseOverlay.Update();
 
+        _pickupOverlay.Update();
+
         if (_pauseOverlay.SaveRequested)
             QuickSave();
 
@@ -73,10 +80,11 @@ public class PlayingScreen : IGameScreen
         }
 
         bool paused = _pauseOverlay.IsActive;
+        bool pickupActive = _pickupOverlay.IsActive;
 
         bool dialogueBlocking = _dialogueOverlay.IsActive && _dialogueOverlay.BlocksInput;
 
-        if (!_anim.IsPlaying && !dialogueBlocking && !paused)
+        if (!_anim.IsPlaying && !dialogueBlocking && !paused && !pickupActive)
         {
             HandleInput();
             ProcessPendingEffects();
@@ -148,6 +156,7 @@ public class PlayingScreen : IGameScreen
 
         _dialogueOverlay.Draw(screenWidth, screenHeight);
         _pauseOverlay.Draw(screenWidth, screenHeight);
+        _pickupOverlay.Draw(screenWidth, screenHeight);
 
         DrawNotification(screenWidth, screenHeight);
     }
@@ -212,6 +221,12 @@ public class PlayingScreen : IGameScreen
             action = PartyActionType.Wait;
         else if (Raylib.IsKeyPressed(KeyboardKey.I))
             _nextScreen = new StatsScreen(_session, _config, _activeSave, _services);
+        else if (Raylib.IsKeyPressed(KeyboardKey.G))
+        {
+            var tile = _session.CurrentMap.Map.GetTile(_session.Party.Position);
+            if (tile != null && !tile.FloorInventory.IsEmpty)
+                _pickupOverlay.Open(tile.FloorInventory);
+        }
         else if (Raylib.IsKeyPressed(KeyboardKey.F5))
             QuickSave();
         else if (Raylib.IsKeyPressed(KeyboardKey.Escape))
@@ -244,6 +259,34 @@ public class PlayingScreen : IGameScreen
             _session.ExecuteAction(action.Value);
             _currentView = _session.GetView();
         }
+    }
+
+    private bool OnItemPickedUp(string itemId, int qty)
+    {
+        var hero = _activeSave.Characters.FirstOrDefault();
+        if (hero == null) return false;
+
+        if (!hero.Inventory.Add(itemId, qty))
+        {
+            ShowNotification("Inventaire plein !");
+            return false;
+        }
+
+        var def = _services.Items.Get(itemId);
+        var name = def?.Title ?? itemId;
+        ShowNotification($"{name} ramassé.");
+
+        // Persister dans WorldState — la tile est déjà modifiée avant cet appel
+        var pos = _session.Party.Position;
+        var mapId = _session.CurrentMap.Map.Name;
+        var tile = _session.CurrentMap.Map.GetTile(pos);
+        Console.WriteLine($"[Pickup] Tile inventory avant SetTileInventory : {string.Join(", ", tile?.FloorInventory.Items.Select(kv => $"{kv.Key}×{kv.Value}") ?? [])}");
+        if (tile != null) { 
+            _activeSave.World.SetTileInventory(mapId, pos.X, pos.Y, tile.FloorInventory);
+            Console.WriteLine($"[Pickup] Override sauvegardé pour {mapId} ({pos.X},{pos.Y})");
+        }
+
+        return true;
     }
 
     private void QuickSave()

@@ -115,7 +115,7 @@ public partial class MapGridViewModel : ObservableObject
     }
 
     /// <summary>Update tile data (walkable / transition) for an already-existing override.</summary>
-    public void UpdateTileData(int x, int y, bool walkable, MapTransition? transition)
+    public void UpdateTileData(int x, int y, bool walkable, MapTransition? transition, List<TileItemData>? items = null)
     {
         if (!_tileOverrides.TryGetValue((x, y), out var existing)) return;
         _tileOverrides[(x, y)] = new TileData
@@ -123,7 +123,8 @@ public partial class MapGridViewModel : ObservableObject
             Position   = existing.Position,
             TileTypeId = existing.TileTypeId,
             Walkable   = walkable,
-            Transition = transition
+            Transition = transition,
+            Items = items ?? existing.Items
         };
         Sync(); MapChanged?.Invoke();
     }

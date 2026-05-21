@@ -13,10 +13,55 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 - Écran de pause + retour au menu depuis le jeu
 - Bouton Save dans l'UI du jeu
 - Système de combat (1d20 + quotient)
-- EventLoader (JSON → EventSystem)
-- Éditeur d'events dans MapEditor
 
 ---
+
+## [0.7.0] — Items + Events toolset + Écran de pause
+ 
+### Ajouté
+- `DungeonCrawler.Core.Tests` — nouveau projet de tests
+  - `InventoryTests` — 13 tests
+  - `ItemRegistryTests` — 8 tests
+- `Inventory` dans `DungeonCrawler.Core` — mutable, `MaxSlots?`, `Add/Remove → bool`
+- `ItemDefinition`, `ItemType` (sealed: Other/Quest/Equipment), `StackRules` dans `DungeonCrawler.Core`
+- `ItemRegistry` dans `DungeonCrawler.Core` — catalogue runtime
+- `Tile.FloorInventory` — chaque tile a un inventaire au sol
+- `ItemLoader` dans `DungeonCrawler.MapLoader` — charge `items.json` → `ItemRegistry`
+- `EventLoader` dans `DungeonCrawler.EventSystems` — charge events depuis JSON
+- `PauseOverlay` dans `DungeonCrawler.Raylib` — Reprendre / Sauvegarder / Menu principal
+- `GameServices` étendu avec `ItemRegistry`
+- `EventData`, `EventConditionData`, `EventEffectData`, `EventFile`, `EventSerializer` dans `MapEditor.Core`
+- `ItemsFile`, `ItemData`, `ItemsSerializer` dans `MapEditor.Core`
+- `ScriptDefinition`, `ScriptParamDefinition`, `ScriptsFile` dans `MapEditor.Core`
+- `CampaignProject.EventsPath`, `ItemsPath` + chemins absolus
+- `EventsWindow` dans `MapEditor.Avalonia` — liste fichiers events, éditeur events+effets
+- `ItemsWindow` dans `MapEditor.Avalonia` — éditeur items (id, titre, description, type, stack, sprite)
+- Overlays canvas `MapCanvasControl` — porte pixel art (coin bas-droit), fiole rouge (coin bas-gauche)
+- Items au sol dans panneau propriétés tile (+ / - avec ComboBox + NumericUpDown)
+- `events/maps/the_cells.events.json` dans Nostro (migré depuis Program.cs)
+- `items/items.json` dans Nostro (3 items)
+- `PickupOverlay` — menu ramassage (touche G), `Func<string,int,bool> OnPickup` avec rollback
+- `DungeonRenderer.LoadItemTextures` — cache textures PNG par itemId, fallback procédural
+- `DungeonRenderer.DrawFloorItem` — sprite billboard perspective (interpolation t=0.7)
+- `DungeonRenderer.DrawCloseFloorItem` — close-up quand joueur sur la tile
+- Réglages statiques : `ItemDepthT`, `ItemWidthRatio`, `ItemCloseSize`, `ItemOffsetX`
+- `WorldState.TileInventoryOverrides` — persiste les inventaires de tiles modifiés
+- `WorldState.SetTileInventory` / `TryGetTileInventory` — helpers
+- `DungeonSession.ApplyTileInventoryOverrides` — appliqué au constructeur + à chaque transition
+- `Character.Inventory` — `Inventory { MaxSlots = 10 }` (ref Core depuis Characters)
+- Section inventaire dans `StatsScreen` — cliquable, bouton [poser] par item
+- `DropItem` dans `StatsScreen` — retire de l'inventaire, pose sur la tile, persiste WorldState
+### Modifié
+- `TileData` — ajout `List<TileItemData> Items`
+- `MapFileLoader.BuildLoadedMap()` — charge les items des tiles → `FloorInventory`
+- `PlayingScreen` — bloque input pendant pause (`PauseOverlay.IsActive`)
+- `StatsScreen` — reçoit `GameServices`
+- `Program.cs` Nostro — utilise `EventLoader` + `ItemLoader`, plus d'events hardcodés
+- `CharacterSaveData` — ajout `Dictionary<string, int> Inventory`
+- `CharacterMapper.ToSaveData` / `FromSaveData` — incluent l'inventaire
+- `PlayingScreen` — intègre `PickupOverlay`, `OnItemPickedUp`, touche G
+- `DungeonCrawler.Characters.csproj` — référence `DungeonCrawler.Core`
+- `DungeonCrawler.Persistence.csproj` — référence `DungeonCrawler.Core`
 
 ## [0.6.0] — Events + Dialogue narratif
 

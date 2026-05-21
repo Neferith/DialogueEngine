@@ -67,12 +67,12 @@ DialogueEngine.Core          ← moteur dialogue pur
 DialogueEngine.Serialization ← JSON dialogues
 DialogueEngine.Editor        ← éditeur Avalonia
 
-DungeonCrawler.Core          ← moteur donjon pur (maps, party, entités, systèmes)
+DungeonCrawler.Core          ← moteur donjon pur (maps, party, entités, Inventory, ItemDefinition, ItemRegistry)
 DungeonCrawler.Persistence   ← DTOs sauvegarde (SaveFile, WorldState, NpcState...)
 DungeonCrawler.Characters    ← système RPG personnages (indépendant de Core)
-DungeonCrawler.EventSystems  ← events + scripts + actions (ref Core + Persistence + Characters)
+DungeonCrawler.EventSystems  ← events + scripts + actions (ref Core + Persistence + Characters) + EventLoader
 DungeonCrawler.Raylib        ← renderer + IGameScreen + screens + mappers
-DungeonCrawler.MapLoader     ← pont éditeur ↔ moteur (ref Core + MapEditor.Core + EventSystems)
+DungeonCrawler.MapLoader     ← pont éditeur ↔ moteur (ref Core + MapEditor.Core + EventSystems + ItemLoader)
 
 MapEditor.Core               ← modèles maps + modules + CharacterRulesFile
 MapEditor.Avalonia           ← éditeur visuel + éditeur CharacterRules
@@ -80,7 +80,9 @@ MapEditor.Avalonia           ← éditeur visuel + éditeur CharacterRules
 Nostro                       ← campagne jouable (Exe)
   ├── rules/character_rules.json
   ├── dialogues/intro_dialogue.json
-  └── events/ (à venir)
+  ├── events/ (à venir)
+  ├── events/maps/the_cells.events.json
+  └── items/items.json
 ```
 
 **Règle de dépendance** :
@@ -103,6 +105,19 @@ Nostro                       ← campagne jouable (Exe)
 - `PlayingScreen` → `I` → `StatsScreen` → `Escape` → `PlayingScreen`
 - `PlayingScreen` : `F5` = quicksave, `I` = stats
 - `GameServices(SaveManager, EventSystem, EventScriptRegistry)` — transite dans tous les écrans
+- `PauseOverlay` : Reprendre / Sauvegarder / Menu principal (Escape depuis PlayingScreen)
+
+
+Blocage input dans PlayingScreen :
+```csharp
+bool dialogueBlocking = _dialogueOverlay.IsActive && _dialogueOverlay.BlocksInput;
+bool paused = _pauseOverlay.IsActive;
+if (!_anim.IsPlaying && !dialogueBlocking && !paused)
+{
+    HandleInput();
+    ProcessPendingEffects();
+}
+```
 
 ---
 
@@ -113,6 +128,59 @@ Nostro                       ← campagne jouable (Exe)
 - `CharacterMapper` dans `DungeonCrawler.Raylib` : `Character` ↔ `CharacterSaveData`
 - `ActiveSave(SaveManager, SlotIndex, HeroName, List<Character>, WorldState)` : contexte en cours de partie
 - Coordonnées sauvegardées = coords JEU (déjà flippées)
+- `GameServices(SaveManager, EventSystem, EventScriptRegistry, ItemRegistry)` — 4ème paramètre ajouté
+
+---
+
+## Inventaire et items (DungeonCrawler.Core)
+ 
+**`Inventory`** (mutable — pas immutable, pas de Compose, tout redessiné chaque frame) :
+- `Dictionary<string, int>` items + `int? MaxSlots`
+- `Add(itemId, qty) → bool`, `Remove(itemId, qty) → bool`, `Clear()`
+- `IsFull`, `Contains`, `GetQuantity`, `SlotCount`
+- Utilisé par : `Tile.FloorInventory`, futures entités coffres, `Character` (à venir)
+**`ItemDefinition`** : Id, Title, Description, Type (ItemType), StackRules, SpritePath
+ 
+**`ItemType`** : sealed records `Other/Quest/Equipment` (futurs : Consumable, Material)
+ 
+**`ItemRegistry`** : catalogue runtime, `Register(item)`, `Get(id)`, `All`
+ 
+**`ItemLoader`** (dans MapLoader) : charge `items.json` → `ItemRegistry`
+ 
+**`TileData`** (MapEditor.Core) : `List<TileItemData> Items` (`{ Id, Quantity }`)
+ 
+**`Tile.FloorInventory`** : chargé depuis `tileData.Items` dans `MapFileLoader.BuildLoadedMap()`
+
+**`Inventory`** : dans `DungeonCrawler.Core`. Mutable.
+- `DungeonCrawler.Characters` et `DungeonCrawler.Persistence` référencent désormais `DungeonCrawler.Core`
+- `Character.Inventory = new Inventory { MaxSlots = 10 }`
+**`WorldState.TileInventoryOverrides`** :
+```
+Dict<mapId, Dict<"x_y", Dict<itemId, qty>>>
+```
+- Toujours stocker même si vide — vide = "items retirés"
+- `inventory.IsEmpty` → stocker `{}` (ne pas supprimer la clé !)
+- Appliqué dans `DungeonSession` constructeur + `CheckTransition`
+
+---
+## Sprites items au sol (DungeonRenderer)
+
+**Réglages statiques** (modifiables depuis Program.cs/NostroConfig) :
+```csharp
+DungeonRenderer.ItemDepthT       // position profondeur (0=near, 1=far), défaut 0.70f
+DungeonRenderer.ItemWidthRatio   // taille / largeur cellule, défaut 0.18f
+DungeonRenderer.ItemCloseSize    // taille close-up px, défaut 140f
+DungeonRenderer.ItemOffsetX      // décalage horizontal (-1 à +1), défaut 0f
+```
+ 
+**Sprite** : `SpritePath` dans `ItemDefinition` → chargé via `LoadItemTextures(registry)`.
+Fallback : `DrawPotionAt()` procédural (fiole rouge pixel art).
+ 
+**Positionnement** : interpolation perspective à `ItemDepthT` le long de la cellule :
+```csharp
+float baseY   = sq.BottomForward + t * (sq.BottomBack - sq.BottomForward);
+float midLeft = sq.LeftForward   + t * (sq.LeftBack   - sq.LeftForward);
+```
 
 ---
 
@@ -163,6 +231,10 @@ ctx.StartDialogue("id") / ShowMessage("msg") / GiveItem("id", qty)
 - `NotifyMapEntered()` → appeler depuis `PlayingScreen.OnEnter()`
 - Relaye `EventFired` : `Action<GameEvent, IReadOnlyList<IGameAction>>`
 
+**EventLoader** (dans EventSystems, ref MapEditor.Core) :
+- Scan `events/global/*.events.json` et `events/maps/*.events.json`
+- Convertit `Dictionary<string, string>` params → `object` selon `ScriptParameter.Type`
+
 ---
 
 ## Dialogue overlay (DungeonCrawler.Raylib)
@@ -190,6 +262,8 @@ WorldState
 
 Sauvegardé dans `SaveFile.WorldState`. Restauré au chargement.
 
+**Dette** : `TileInventoryOverrides` pas encore implémenté (items ramassés non persistés).
+
 ---
 
 ## Éditeur MapEditor
@@ -199,6 +273,8 @@ Sauvegardé dans `SaveFile.WorldState`. Restauré au chargement.
 - `CharacterRulesPath` dans `CampaignProject` → `AbsoluteCharacterRulesPath` avec `[JsonIgnore]`
 - `NumericUpDown.Value` est `decimal?` en Avalonia → propriétés VM en `decimal`, cast `(int)` dans `ToData()`
 - Auto-création du `character_rules.json` si absent (dans `CharacterRulesViewModel.Load()`)
+- Items au sol dans panneau propriétés : `InitializeItems(List<string>)` appelé dans `OpenProject` ET `OpenRecentProject`
+- Overlays canvas : porte pixel art (coin bas-droit), fiole rouge pixel art (coin bas-gauche)
 
 ---
 
@@ -226,3 +302,12 @@ Sauvegardé dans `SaveFile.WorldState`. Restauré au chargement.
 - `BackgroundRequirementRaw` : `this((List<string>?)null)` pour lever l'ambiguïté du constructeur de copie.
 - `FantasyUI.Init` : charger la police à 256px pour éviter la pixelisation.
 - Dialogue : réponses silencieuses avec `" "` pas `""` (désync runner/overlay sinon).
+- `Inventory` mutable (pas immutable) — pas de Compose, tout est redessiné chaque frame
+- `ItemLoader` va dans `DungeonCrawler.MapLoader` (pas Core) car référence MapEditor.Core
+- `EventLoader` va dans `DungeonCrawler.EventSystems` (ref MapEditor.Core pour EventSerializer)
+- `InitializeItems` doit être appelé dans `OpenProject` ET `OpenRecentProject`
+- `WorldState.TileInventoryOverrides` : ne jamais supprimer la clé quand inventory vide — stocker `{}` pour que `ApplyTileInventoryOverrides` puisse vider la tile
+- `PickupOverlay.OnPickup` est `Func<string,int,bool>` — retirer de la tile AVANT d'invoquer, rollback si retour `false`
+- `DungeonCrawler.Characters` référence maintenant `DungeonCrawler.Core` (ajout récent)
+- `DungeonCrawler.Persistence` référence maintenant `DungeonCrawler.Core` (ajout récent)
+ 

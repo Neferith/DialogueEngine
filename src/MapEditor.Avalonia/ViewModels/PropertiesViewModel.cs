@@ -13,6 +13,14 @@ public partial class PropertyEntryViewModel : ObservableObject
     [ObservableProperty] private string _value = "";
 }
 
+public partial class TileItemEntryViewModel : ObservableObject
+{
+    [ObservableProperty] private string _itemId = "";
+    [ObservableProperty] private decimal _quantity = 1;
+
+    public IReadOnlyList<string> AvailableItemIds { get; set; } = [];
+}
+
 public partial class PropertiesViewModel : ObservableObject
 {
     // ── Dépendances injectées par EditorViewModel ─────────────────────────────
@@ -38,6 +46,14 @@ public partial class PropertiesViewModel : ObservableObject
     [ObservableProperty] private string _transitionArrivalOrientation = "SOUTH";
     [ObservableProperty] private string _transitionReturnOrientation = "NORTH";
 
+    // ── Items au sol ──────────────────────────────────────────────────────────────
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RemoveTileItemCommand))]
+    private TileItemEntryViewModel? _selectedTileItem;
+
+    public ObservableCollection<TileItemEntryViewModel> TileItems { get; } = new();
+
+    private List<string> _availableItemIds = new();
     public ObservableCollection<string> AvailableMaps { get; } = new();
 
     // ── Section entité ────────────────────────────────────────────────────────
@@ -67,7 +83,12 @@ public partial class PropertiesViewModel : ObservableObject
             AvailableMaps.Add(id);
     }
 
- 
+    public void InitializeItems(List<string> itemIds)
+    {
+        _availableItemIds = itemIds;
+    }
+
+
 
     public void ShowMapInfo(MapSummary summary)
     {
@@ -115,6 +136,15 @@ public partial class PropertiesViewModel : ObservableObject
             TransitionArrivalX = "";
             TransitionArrivalY = "";
         }
+        // Items au sol
+        TileItems.Clear();
+        foreach (var item in tileData?.Items ?? [])
+            TileItems.Add(new TileItemEntryViewModel
+            {
+                ItemId = item.Id,
+                Quantity = item.Quantity,
+                AvailableItemIds = _availableItemIds
+            });
     }
 
     public void ShowEntity(int x, int y, EntityTypeDefinition entityType,
@@ -171,7 +201,12 @@ public partial class PropertiesViewModel : ObservableObject
             };
         }
 
-        _grid.UpdateTileData(_px, _py, TileWalkable, transition);
+        var items = TileItems
+    .Where(i => !string.IsNullOrWhiteSpace(i.ItemId))
+    .Select(i => new TileItemData { Id = i.ItemId, Quantity = (int)i.Quantity })
+    .ToList();
+
+        _grid.UpdateTileData(_px, _py, TileWalkable, transition, items);
 
         Console.WriteLine($"[Apply] HasTransition={HasTransition} transition={transition?.TargetMapId ?? "null"}");
     }
@@ -205,6 +240,29 @@ public partial class PropertiesViewModel : ObservableObject
         var props = EntityProperties.ToDictionary(e => e.Key, e => e.Value);
         _grid.UpdateEntityPlacement(_px, _py, EntityOrientation, props);
     }
+
+    [RelayCommand]
+    private void AddTileItem()
+    {
+        var vm = new TileItemEntryViewModel
+        {
+            ItemId = _availableItemIds.FirstOrDefault() ?? "",
+            Quantity = 1,
+            AvailableItemIds = _availableItemIds
+        };
+        TileItems.Add(vm);
+        SelectedTileItem = vm;
+    }
+
+    [RelayCommand(CanExecute = nameof(CanRemoveTileItem))]
+    private void RemoveTileItem()
+    {
+        if (SelectedTileItem == null) return;
+        TileItems.Remove(SelectedTileItem);
+        SelectedTileItem = TileItems.LastOrDefault();
+    }
+
+    private bool CanRemoveTileItem() => SelectedTileItem != null;
 
     // ── Logique transition inverse ────────────────────────────────────────────
 

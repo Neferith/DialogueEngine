@@ -33,6 +33,12 @@ public static class DungeonRenderer
     private static readonly Color FloorCol    = new( 48, 38, 28, 255);
     private static readonly Color CeilingCol  = new( 26, 26, 42, 255);
 
+    // ── Réglages items au sol (tuning) ───────────────────────────────────────
+    public static float ItemDepthT = 0.20f;  // position profondeur (0=near, 1=far)
+    public static float ItemWidthRatio = 0.08f;  // taille / largeur cellule
+    public static float ItemCloseSize = 55f;   // taille close-up (px)
+    public static float ItemOffsetX = 0.7f;  // -1.0 à +1.0
+
     // =========================================================================
     // Textures
     // =========================================================================
@@ -43,6 +49,9 @@ public static class DungeonRenderer
     private static Texture2D _texCeiling;
     private static Texture2D _texDoor;
     private static bool      _texLoaded;
+
+    // ── Textures items ────────────────────────────────────────────────────────────
+    private static readonly Dictionary<string, Texture2D> _itemTextures = new();
 
     public static void Init(string assetsPath = "Assets")
     {
@@ -65,6 +74,10 @@ public static class DungeonRenderer
         Raylib.UnloadRenderTexture(_viewTex);
         Raylib.UnloadRenderTexture(_fromTex);
         Raylib.UnloadRenderTexture(_toTex);
+
+        foreach (var tex in _itemTextures.Values)
+            if (tex.Id > 0) Raylib.UnloadTexture(tex);
+        _itemTextures.Clear();
     }
 
     public static void UnloadTextures() => Unload();
@@ -109,6 +122,28 @@ public static class DungeonRenderer
         }
 
         _texLoaded = ok;
+    }
+
+    public static void LoadItemTextures(ItemRegistry registry)
+    {
+        foreach (var tex in _itemTextures.Values)
+            if (tex.Id > 0) Raylib.UnloadTexture(tex);
+        _itemTextures.Clear();
+
+        foreach (var item in registry.All)
+        {
+            if (string.IsNullOrEmpty(item.SpritePath) || !File.Exists(item.SpritePath))
+                continue;
+
+            var tex = Raylib.LoadTexture(item.SpritePath);
+            if (tex.Id > 0)
+            {
+                Raylib.SetTextureFilter(tex, TextureFilter.Point); // pixel art
+                _itemTextures[item.Id] = tex;
+            }
+        }
+
+        Console.WriteLine($"[DungeonRenderer] {_itemTextures.Count} texture(s) item chargée(s).");
     }
 
     private static Texture2D LoadTex(string? path)
@@ -281,6 +316,80 @@ public static class DungeonRenderer
                 new Rectangle(x, cT, 1, cB - cT),
                 Vector2.Zero, 0f, tint);
         }
+    }
+
+    private static void DrawFloorItem(DungeonSquare sq, string itemId)
+    {
+        float t = DungeonRenderer.ItemDepthT;
+
+        float baseY = sq.BottomForward + t * (sq.BottomBack - sq.BottomForward);
+        float midLeft = sq.LeftForward + t * (sq.LeftBack - sq.LeftForward);
+        float midRight = sq.RightForward + t * (sq.RightBack - sq.RightForward);
+        float midW = midRight - midLeft;
+
+        if (midW < 4f) return;
+
+        float pw = Math.Max(4f, midW * DungeonRenderer.ItemWidthRatio);
+        float ph = pw * 1.6f;
+        float px = midLeft + midW * (0.5f + ItemOffsetX * 0.5f) - pw * 0.5f;
+        float py = baseY - ph;
+
+        if (_itemTextures.TryGetValue(itemId, out var tex) && tex.Id > 0)
+            Raylib.DrawTexturePro(tex,
+                new Rectangle(0, 0, tex.Width, tex.Height),
+                new Rectangle(px, py, pw, ph),
+                Vector2.Zero, 0f, Color.White);
+        else
+            DrawPotionAt((int)px, (int)py, (int)pw, (int)ph);
+    }
+
+    private static void DrawCloseFloorItem(string itemId)
+    {
+        float pw = DungeonRenderer.ItemCloseSize;          // plus grand que dist=1 (~80px)
+        float ph = pw * 1.6f;
+        float px = Cx + (ViewSize * 0.4f * ItemOffsetX) - pw * 0.5f;
+        float py = ViewSize - ph - 4f;  // collé au bas de l'écran (à vos pieds)
+
+        if (_itemTextures.TryGetValue(itemId, out var tex) && tex.Id > 0)
+            Raylib.DrawTexturePro(tex,
+                new Rectangle(0, 0, tex.Width, tex.Height),
+                new Rectangle(px, py, pw, ph),
+                Vector2.Zero, 0f, Color.White);
+        else
+            DrawPotionAt((int)px, (int)py, (int)pw, (int)ph);
+    }
+
+    private static void DrawPotionAt(int px, int py, int pw, int ph)
+    {
+        if (pw < 4 || ph < 4) return;
+
+        // Bouchon
+        Raylib.DrawRectangle(
+            px + (int)(pw * 0.2f), py,
+            (int)(pw * 0.6f), Math.Max(1, (int)(ph * 0.12f)),
+            new Color(74, 48, 16, 255));
+        // Col
+        Raylib.DrawRectangle(
+            px + (int)(pw * 0.2f), py + (int)(ph * 0.12f),
+            (int)(pw * 0.6f), Math.Max(1, (int)(ph * 0.18f)),
+            new Color(107, 74, 26, 255));
+        // Corps
+        Raylib.DrawRectangle(
+            px, py + (int)(ph * 0.30f),
+            pw, (int)(ph * 0.70f),
+            new Color(204, 34, 34, 255));
+        // Reflet
+        if (pw >= 6)
+            Raylib.DrawRectangle(
+                px + (int)(pw * 0.1f), py + (int)(ph * 0.35f),
+                Math.Max(1, (int)(pw * 0.2f)), (int)(ph * 0.45f),
+                new Color(255, 100, 100, 120));
+        // Ombre
+        if (pw >= 8)
+            Raylib.DrawRectangle(
+                px + (int)(pw * 0.75f), py + (int)(ph * 0.30f),
+                Math.Max(1, (int)(pw * 0.25f)), (int)(ph * 0.70f),
+                new Color(100, 0, 0, 100));
     }
 
     // =========================================================================
@@ -499,6 +608,14 @@ public static class DungeonRenderer
 
         DrawFloor(sq,   tint);
         DrawCeiling(sq, tint);
+
+        // Items sur la tile du joueur
+        var playerTile = map.GetTile(party.Position);
+        if (playerTile != null && !playerTile.FloorInventory.IsEmpty)
+        {
+            var firstId = playerTile.FloorInventory.Items.Keys.First();
+            DrawCloseFloorItem(firstId);
+        }
     }
 
     // =========================================================================
@@ -610,6 +727,12 @@ public static class DungeonRenderer
 
             DrawFloor(sq,   floorTint);
             DrawCeiling(sq, ceilTint);
+
+            if (!cell.Tile.FloorInventory.IsEmpty)
+            {
+                var firstId = cell.Tile.FloorInventory.Items.Keys.First();
+                DrawFloorItem(sq, firstId);
+            }
 
             if (entities.TryGetValue((lat, dist), out var ve))
                 DrawEntity(sq, ve.Entity);

@@ -1,4 +1,5 @@
-﻿using DungeonCrawler.EventSystems;
+﻿using DungeonCrawler.Core;
+using DungeonCrawler.EventSystems;
 using DungeonCrawler.Persistence;
 
 namespace DungeonCrawler.RaylibGame;
@@ -6,4 +7,5 @@ namespace DungeonCrawler.RaylibGame;
 public record GameServices(
     SaveManager SaveManager,
     EventSystem Events,
-    EventScriptRegistry ScriptRegistry);
+    EventScriptRegistry ScriptRegistry,
+    ItemRegistry Items);
