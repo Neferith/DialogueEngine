@@ -15,7 +15,7 @@ src/
 ├── Sample1/                      Démo dialogue — conversation NES-style
 ├── Sample2/                      Démo dialogue — jeu vue de dessus
 │
-├── DungeonCrawler.Core/          Moteur donjon pur (maps, party, entités, systèmes)
+├── DungeonCrawler.Core/          Moteur donjon pur (maps, party, entités, Inventory, Items)
 ├── DungeonCrawler.Persistence/   DTOs de sauvegarde (SaveFile, WorldState, NpcState...)
 ├── DungeonCrawler.Characters/    Système RPG personnages (indépendant de Core)
 ├── DungeonCrawler.EventSystems/  Système d'events, scripts, actions
@@ -30,7 +30,8 @@ src/
 tests/
 ├── DialogueEngine.Core.Tests/        Tests moteur dialogue (xUnit + FluentAssertions)
 ├── DungeonCrawler.MapLoader.Tests/   Tests chargement de maps
-└── DungeonCrawler.Characters.Tests/  Tests système de personnages
+├── DungeonCrawler.Characters.Tests/  Tests système de personnages
+└── DungeonCrawler.Core.Tests/` dans structure tests
 ```
 
 ---

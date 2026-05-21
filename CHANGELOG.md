@@ -18,6 +18,46 @@ Format basé sur [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/).
 
 ---
 
+## [0.7.0] — Items + Events toolset + Écran de pause
+ 
+### Ajouté
+- `DungeonCrawler.Core.Tests` — nouveau projet de tests
+  - `InventoryTests` — 13 tests
+  - `ItemRegistryTests` — 8 tests
+- `Inventory` dans `DungeonCrawler.Core` — mutable, `MaxSlots?`, `Add/Remove → bool`
+- `ItemDefinition`, `ItemType` (sealed: Other/Quest/Equipment), `StackRules` dans `DungeonCrawler.Core`
+- `ItemRegistry` dans `DungeonCrawler.Core` — catalogue runtime
+- `Tile.FloorInventory` — chaque tile a un inventaire au sol
+- `ItemLoader` dans `DungeonCrawler.MapLoader` — charge `items.json` → `ItemRegistry`
+- `EventLoader` dans `DungeonCrawler.EventSystems` — charge events depuis JSON
+- `PauseOverlay` dans `DungeonCrawler.Raylib` — Reprendre / Sauvegarder / Menu principal
+- `GameServices` étendu avec `ItemRegistry`
+- `EventData`, `EventConditionData`, `EventEffectData`, `EventFile`, `EventSerializer` dans `MapEditor.Core`
+- `ItemsFile`, `ItemData`, `ItemsSerializer` dans `MapEditor.Core`
+- `ScriptDefinition`, `ScriptParamDefinition`, `ScriptsFile` dans `MapEditor.Core`
+- `CampaignProject.EventsPath`, `ItemsPath` + chemins absolus
+- `EventsWindow` dans `MapEditor.Avalonia` — liste fichiers events, éditeur events+effets
+- `ItemsWindow` dans `MapEditor.Avalonia` — éditeur items (id, titre, description, type, stack, sprite)
+- Overlays canvas `MapCanvasControl` — porte pixel art (coin bas-droit), fiole rouge (coin bas-gauche)
+- Items au sol dans panneau propriétés tile (+ / - avec ComboBox + NumericUpDown)
+- `events/maps/the_cells.events.json` dans Nostro (migré depuis Program.cs)
+- `items/items.json` dans Nostro (3 items)
+### Modifié
+- `TileData` — ajout `List<TileItemData> Items`
+- `MapFileLoader.BuildLoadedMap()` — charge les items des tiles → `FloorInventory`
+- `PlayingScreen` — bloque input pendant pause (`PauseOverlay.IsActive`)
+- `StatsScreen` — reçoit `GameServices`
+- `Program.cs` Nostro — utilise `EventLoader` + `ItemLoader`, plus d'events hardcodés
+### Dans [Unreleased] — modifier "Prévu" : supprimer
+- "EventLoader (JSON → EventSystem)"
+- "Éditeur d'events dans MapEditor"
+### Dans [Unreleased] — modifier "Prévu" : ajouter
+- Sprites billboard items dans DungeonRenderer
+- PickupOverlay — menu ramassage
+- GiveItemAction complet
+- WorldState.TileInventoryOverrides
+- Affichage inventaire dans StatsScreen
+
 ## [0.6.0] — Events + Dialogue narratif
 
 ### Ajouté

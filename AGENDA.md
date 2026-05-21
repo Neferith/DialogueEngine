@@ -72,17 +72,22 @@
 - [x] `LoadedMap` — résultat du chargement (map, transitions, entités, spawn)
 - [x] `DungeonSession` — transitions + EventSystem? + WorldState? + NotifyMapEntered()
 - [x] `ModuleTexturesConverter` — `ModuleDefinition` → `BiomeTextures`
+- [x] `ItemLoader` — charge `items.json` → `ItemRegistry`
+- [x] `MapFileLoader` charge les items des tiles → `Tile.FloorInventory`
 - [x] Tests unitaires (dimensions, tiles, spawn, transitions)
 
 ### MapEditor.Core
-- [x] `MapFile`, `TileData`, `EntityPlacement`, `MapTransition`
+- [x] `MapFile`, `TileData`, `EntityPlacement`, `MapTransition`, `List<TileItemData> Items`
 - [x] `ModuleDefinition`, `TileTypeDefinition`, `EntityTypeDefinition`
 - [x] `ModuleLoader` — scan dossier modules/
 - [x] `MapSerializer` — JSON camelCase
-- [x] `CampaignProject` — fichier projet `.campaign.json` + `CharacterRulesPath`
+- [x] `CampaignProject` — fichier projet `.campaign.json` + `CharacterRulesPath` + `EventsPath`, `ItemsPath`
 - [x] `MapSummary` — résumé léger pour le navigateur
 - [x] `CharacterRulesFile` — BackgroundTypeData, BackgroundData, SkillData
 - [x] `CharacterRulesSerializer`
+- [x] `EventData`, `EventConditionData`, `EventEffectData`, `EventFile`, `EventSerializer`
+- [x] `ItemsFile`, `ItemData`, `ItemsSerializer`
+- [x] `ScriptDefinition`, `ScriptParamDefinition`, `ScriptsFile` (modèle pour futur export)
 
 ### MapEditor.Avalonia
 - [x] Ouverture de projet campagne (`.campaign.json`)
@@ -97,6 +102,10 @@
 - [x] `CharacterRulesViewModel`, `BackgroundTypeViewModel`, `BackgroundEditorViewModel`
 - [x] `SkillsViewModel`, `SkillViewModel`
 - [x] Auto-création de `character_rules.json` si absent
+- [x] Panneau propriétés tile — items au sol (+ / - avec ComboBox + NumericUpDown)
+- [x] Overlays canvas — porte pixel art (coin bas-droit), fiole rouge (coin bas-gauche)
+- [x] Menu **Events → Éditeur d'events** → `EventsWindow`
+- [x] Menu **Items → Éditeur d'items** → `ItemsWindow`
 
 ### Nostro
 - [x] Campagne dark fantasy style M&M3
@@ -108,6 +117,8 @@
 - [x] Event intro (MapEnter the_cells, one-shot via flag intro_played)
 - [x] `GameServices` configuré dans `Program.cs`
 - [x] Pipeline complet : éditeur → JSON → MapLoader → jeu
+- [x] `events/maps/the_cells.events.json`, `events/maps/the_cells.events.json` — event intro MapEnter one-shot (migré depuis Program.cs)
+- [x] `items/items.json` — 3 items (nostro_cross, rusty_key, healing_herb)
 
 ---
 
@@ -124,8 +135,7 @@
 - [ ] Police pixelisée dans Raylib (charger à 256px dans `FantasyUI.Init`)
 - [ ] Erreurs tests `DungeonCrawler.MapLoader.Tests` (renommage CharacterAttribute)
 - [ ] Renommage de la solution (de DialogueEngine2)
-- [ ] Events chargés depuis JSON (toolset) — hardcodés dans Program.cs pour l'instant
-- [ ] Éditeur d'events dans MapEditor.Avalonia
+- [ ] `WorldState.TileInventoryOverrides` — persistance inventaires tiles non implémentée
 
 ---
 
@@ -137,13 +147,15 @@
 - [ ] Transitions testées sur plusieurs maps enchaînées
 
 ### Systèmes
-- [ ] Écran de pause (Escape depuis PlayingScreen)
-- [ ] Retour au menu depuis le jeu
 - [ ] Entités depuis le JSON (NPC, items via `EntityPlacement`)
 - [ ] Système de factions NPC
 - [ ] Branchement DialogueEngine sur les NPC (dialogue NPC avec portrait)
 - [ ] Persistance état du monde (portes ouvertes, items ramassés)
-- [ ] EventLoader — charger events depuis JSON
+- [ ] Sprites billboard items dans `DungeonRenderer` (items visibles au sol en 3D)
+- [ ] `PickupOverlay` — menu ramassage (touche dédiée, items sur tile courante)
+- [ ] `GiveItemAction` complet → ajoute à `Character.Inventory`
+- [ ] `WorldState.TileInventoryOverrides` — persister l'état des inventaires de tiles
+- [ ] Affichage inventaire dans `StatsScreen`
 - [ ] Item à ramasser (GiveItemAction complet)
 - [ ] Rencontre : combat / dialogue / recrutement
 
