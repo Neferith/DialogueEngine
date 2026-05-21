@@ -133,6 +133,16 @@ public class MapCanvasControl : Control
                         DrawEntity(ctx, entityType, rect, cs);
                 }
 
+                // ── Overlays tile (transition + items) ──
+                var tileData = grid.GetTileDataAt(x, y);
+                if (tileData != null)
+                {
+                    if (tileData.Transition != null)
+                        DrawDoorOverlay(ctx, rect, cs);
+                    if (tileData.Items.Count > 0)
+                        DrawPotionOverlay(ctx, rect, cs);
+                }
+
                 // ── Hover ──
                 if (x == grid.HoverX && y == grid.HoverY)
                     ctx.DrawRectangle(HoverBrush, null, rect);
@@ -173,6 +183,51 @@ public class MapCanvasControl : Control
             new Typeface("default"), 16, brush);
         ctx.DrawText(ft, new Point((bounds.Width  - ft.Width)  / 2,
                                    (bounds.Height - ft.Height) / 2));
+    }
+
+    private static void DrawDoorOverlay(DrawingContext ctx, Rect cell, int cs)
+    {
+        // Porte pixel art — coin bas-droit
+        float s = Math.Max(6f, cs * 0.28f);
+        float ox = (float)(cell.Right - s - 2);
+        float oy = (float)(cell.Bottom - s - 2);
+
+        // Cadre brun
+        ctx.DrawRectangle(new SolidColorBrush(Color.Parse("#6B4A1A")), null,
+            new Rect(ox, oy, s, s));
+        // Panneau bois
+        ctx.DrawRectangle(new SolidColorBrush(Color.Parse("#A0632A")), null,
+            new Rect(ox + s * 0.1f, oy + s * 0.1f, s * 0.8f, s * 0.8f));
+        // Poignée
+        ctx.DrawEllipse(new SolidColorBrush(Color.Parse("#FFD700")), null,
+            new Point(ox + s * 0.75f, oy + s * 0.5f), s * 0.1f, s * 0.1f);
+    }
+
+    private static void DrawPotionOverlay(DrawingContext ctx, Rect cell, int cs)
+    {
+        // Fiole pixel art — coin bas-gauche
+        float s = Math.Max(5f, cs * 0.22f);
+        float ox = (float)(cell.X + 2);
+        float oy = (float)(cell.Bottom - s * 1.6f - 2);
+
+        float pw = s;
+        float ph = s * 1.6f;
+
+        // Bouchon brun
+        ctx.DrawRectangle(new SolidColorBrush(Color.Parse("#4A3010")), null,
+            new Rect(ox + pw * 0.2f, oy, pw * 0.6f, ph * 0.12f));
+        // Col
+        ctx.DrawRectangle(new SolidColorBrush(Color.Parse("#6B4A1A")), null,
+            new Rect(ox + pw * 0.2f, oy + ph * 0.12f, pw * 0.6f, ph * 0.18f));
+        // Corps rouge
+        ctx.DrawRectangle(new SolidColorBrush(Color.Parse("#CC2222")), null,
+            new Rect(ox, oy + ph * 0.30f, pw, ph * 0.70f));
+        // Reflet gauche clair
+        ctx.DrawRectangle(new SolidColorBrush(Color.FromArgb(120, 255, 100, 100)), null,
+            new Rect(ox + pw * 0.1f, oy + ph * 0.35f, pw * 0.2f, ph * 0.45f));
+        // Ombre droite
+        ctx.DrawRectangle(new SolidColorBrush(Color.FromArgb(100, 100, 0, 0)), null,
+            new Rect(ox + pw * 0.75f, oy + ph * 0.30f, pw * 0.25f, ph * 0.70f));
     }
 
     // ── Brush helpers ─────────────────────────────────────────────────────────
