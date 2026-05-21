@@ -33,6 +33,12 @@ public static class DungeonRenderer
     private static readonly Color FloorCol    = new( 48, 38, 28, 255);
     private static readonly Color CeilingCol  = new( 26, 26, 42, 255);
 
+    // ── Réglages items au sol (tuning) ───────────────────────────────────────
+    public static float ItemDepthT = 0.20f;  // position profondeur (0=near, 1=far)
+    public static float ItemWidthRatio = 0.08f;  // taille / largeur cellule
+    public static float ItemCloseSize = 55f;   // taille close-up (px)
+    public static float ItemOffsetX = 0.7f;  // -1.0 à +1.0
+
     // =========================================================================
     // Textures
     // =========================================================================
@@ -314,14 +320,19 @@ public static class DungeonRenderer
 
     private static void DrawFloorItem(DungeonSquare sq, string itemId)
     {
-        float fw = sq.RightForward - sq.LeftForward;
-        float fh = sq.BottomForward - sq.TopForward;
-        if (fw < 4f || fh < 4f) return;
+        float t = DungeonRenderer.ItemDepthT;
 
-        float pw = Math.Max(6f, fw * 0.20f);
+        float baseY = sq.BottomForward + t * (sq.BottomBack - sq.BottomForward);
+        float midLeft = sq.LeftForward + t * (sq.LeftBack - sq.LeftForward);
+        float midRight = sq.RightForward + t * (sq.RightBack - sq.RightForward);
+        float midW = midRight - midLeft;
+
+        if (midW < 4f) return;
+
+        float pw = Math.Max(4f, midW * DungeonRenderer.ItemWidthRatio);
         float ph = pw * 1.6f;
-        float px = sq.LeftForward + fw * 0.5f - pw * 0.5f;
-        float py = sq.BottomForward - ph - fh * 0.02f;
+        float px = midLeft + midW * (0.5f + ItemOffsetX * 0.5f) - pw * 0.5f;
+        float py = baseY - ph;
 
         if (_itemTextures.TryGetValue(itemId, out var tex) && tex.Id > 0)
             Raylib.DrawTexturePro(tex,
@@ -334,10 +345,10 @@ public static class DungeonRenderer
 
     private static void DrawCloseFloorItem(string itemId)
     {
-        float pw = 44f;
+        float pw = DungeonRenderer.ItemCloseSize;          // plus grand que dist=1 (~80px)
         float ph = pw * 1.6f;
-        float px = Cx - pw * 0.5f;
-        float py = ViewSize - ph - 24f;
+        float px = Cx + (ViewSize * 0.4f * ItemOffsetX) - pw * 0.5f;
+        float py = ViewSize - ph - 4f;  // collé au bas de l'écran (à vos pieds)
 
         if (_itemTextures.TryGetValue(itemId, out var tex) && tex.Id > 0)
             Raylib.DrawTexturePro(tex,
