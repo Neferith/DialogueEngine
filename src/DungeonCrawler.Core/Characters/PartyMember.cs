@@ -6,13 +6,14 @@ namespace DungeonCrawler.Core.Characters;
 /// </summary>
 public class PartyMember
 {
-    public string Name    { get; set; }
-    public bool   IsAlive { get; set; } = true;
+    public string CharacterId { get; }
+    public bool IsAlive { get; set; } = true;
+    public bool HasActed { get; set; } = false;
 
-    public PartyMember(string name)
+    public PartyMember(string characterId)
     {
-        Name = name;
+        CharacterId = characterId;
     }
 
-    public override string ToString() => $"{Name}{(IsAlive ? "" : " [KO]")}";
+    public override string ToString() => $"{CharacterId}{(IsAlive ? "" : " [KO]")}";
 }

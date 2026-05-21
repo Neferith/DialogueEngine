@@ -426,11 +426,10 @@ public class CharacterCreationScreen : IGameScreen
         var party = new DungeonCrawler.Core.Characters.Party(spawn, facing, maxSize: 4);
         foreach (var c in activeSave.Characters)
             party.TryAddMember(new DungeonCrawler.Core.Characters.PartyMember(
-                c.Description.Name.FullName));
+                c.Id));
 
-        var entities = new EntitySystem();
-        var runner = new DungeonCrawler.Core.DungeonRunner(loaded.Map, party, entities);
-        var turns = new TurnManager(runner, entities);
+        var runner = new DungeonCrawler.Core.DungeonRunner(loaded.Map, party);
+        var turns = new TurnManager(runner);
         var session = new DungeonSession(
             loaded, runner, turns, loader,
             _config.MapsPath, _config.ModulesPath,

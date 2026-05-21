@@ -1,5 +1,4 @@
 using DungeonCrawler.Core.Characters;
-using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Models;
 
 namespace DungeonCrawler.Core.Rendering;
@@ -17,13 +16,13 @@ public class ViewBuilder
         _config = config ?? new ViewConfig();
     }
 
-    public DungeonView Build(Party party, DungeonMap map, EntitySystem? entitySystem = null)
+    public DungeonView Build(Party party, DungeonMap map)
     {
-        var cells   = new List<VisibleCell>();
-        var pos     = party.Position;
-        var facing  = party.Facing;
+        var cells = new List<VisibleCell>();
+        var pos = party.Position;
+        var facing = party.Facing;
         var forward = facing.ToOffset();
-        var right   = facing.TurnRight().ToOffset();
+        var right = facing.TurnRight().ToOffset();
 
         for (int d = 1; d <= _config.MaxDepth; d++)
         {
@@ -41,52 +40,30 @@ public class ViewBuilder
 
                 var faceTowardPlayer = lat switch
                 {
-                    0   => facing.Opposite(),
+                    0 => facing.Opposite(),
                     < 0 => facing.TurnRight(),
-                    _   => facing.TurnLeft()
+                    _ => facing.TurnLeft()
                 };
 
                 cells.Add(new VisibleCell(cellPos, d, lat, tile, faceTowardPlayer));
             }
         }
 
-        // ── Visible entities ──────────────────────────────────────────────────
-        var visibleEntities = new List<VisibleEntity>();
-        if (entitySystem != null)
-        {
-            foreach (var cell in cells)
-            foreach (var entity in entitySystem.GetAt(cell.MapPosition))
-                visibleEntities.Add(new VisibleEntity(entity, cell.Distance, cell.LateralOffset));
-        }
-
         // ── Interaction target (tile directly ahead) ──────────────────────────
-        var frontPos  = pos + facing.ToOffset();
+        var frontPos = pos + facing.ToOffset();
         var frontTile = map.GetTile(frontPos) ?? new Tile();
 
-        InteractionTarget? target = null;
-
-        // NPC / item overrides tile check
-        if (entitySystem != null)
+        var type = frontTile switch
         {
-            if (entitySystem.GetAt<NpcEntity>(frontPos) is { } npc)
-                target = new InteractionTarget(frontPos, InteractionType.Npc, frontTile, npc);
-            else if (entitySystem.GetAt<ItemEntity>(frontPos) is { } item)
-                target = new InteractionTarget(frontPos, InteractionType.Item, frontTile, item);
-        }
+            { IsSolid: true, Tag: TileTag.Door } => InteractionType.Door,
+            { IsSolid: true } => InteractionType.Wall,
+            { Tag: TileTag.StairsUp } => InteractionType.StairsUp,
+            { Tag: TileTag.StairsDown } => InteractionType.StairsDown,
+            _ => InteractionType.None
+        };
 
-        if (target == null)
-        {
-            var type = frontTile switch
-            {
-                { IsSolid: true, Tag: TileTag.Door } => InteractionType.Door,
-                { IsSolid: true }                    => InteractionType.Wall,
-                { Tag: TileTag.StairsUp }            => InteractionType.StairsUp,
-                { Tag: TileTag.StairsDown }          => InteractionType.StairsDown,
-                _                                    => InteractionType.None
-            };
-            target = new InteractionTarget(frontPos, type, frontTile);
-        }
+        var target = new InteractionTarget(frontPos, type, frontTile);
 
-        return new DungeonView(pos, facing, cells, visibleEntities, target);
+        return new DungeonView(pos, facing, cells, [], target);
     }
 }

@@ -8,6 +8,8 @@ public class WorldState
     public Dictionary<string, int> Variables { get; set; } = new();
     public Dictionary<string, NpcState> Npcs { get; set; } = new();
 
+    public int TurnNumber { get; set; } = 0;
+
     /// Clé1 : mapId  Clé2 : "x_y"  Valeur : items (itemId → quantité)
     public Dictionary<string, Dictionary<string, Dictionary<string, int>>> TileInventoryOverrides { get; set; } = new();
 

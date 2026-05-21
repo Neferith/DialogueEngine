@@ -1,57 +1,45 @@
-using DungeonCrawler.Core.Characters;
-using DungeonCrawler.Core.Entities;
+using DungeonCrawler.Core;
 using DungeonCrawler.Core.Models;
 using DungeonCrawler.Core.Rendering;
+using DungeonCrawler.Core.Systems;
 
-namespace DungeonCrawler.Core.Systems;
-
-/// <summary>
-/// Orchestrates the turn cycle:
-///   1. Party performs one action.
-///   2. Every active monster performs one action.
-///   3. TurnCompleted event fires with the full summary.
-///
-/// Use this as the main input point for the game loop instead of calling
-/// DungeonRunner directly — it adds entity-blocking checks and sequences turns.
-/// </summary>
 public class TurnManager
 {
     private readonly DungeonRunner _runner;
-    private readonly EntitySystem  _entitySystem;
 
-    public int TurnNumber { get; private set; }
+    /// <summary>Fires quand un vrai tour s'écoule.</summary>
+    public event Action? TurnAdvanced;
 
-    /// <summary>Fires after every complete turn (party + all entities).</summary>
-    public event Action<TurnResult>? TurnCompleted;
-
-    public TurnManager(DungeonRunner runner, EntitySystem entitySystem)
+    public TurnManager(DungeonRunner runner)
     {
-        _runner       = runner;
-        _entitySystem = entitySystem;
+        _runner = runner;
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
 
     public TurnResult ExecuteAction(PartyActionType action)
     {
-        TurnNumber++;
-
-        MoveResult? moveResult           = null;
-        bool        interactionTriggered = false;
+        MoveResult? moveResult = null;
+        bool interactionTriggered = false;
+        bool turnAdvanced = false;
 
         switch (action)
         {
             case PartyActionType.MoveForward:
-                moveResult = TryMoveParty(_runner.Party.Facing);
+                moveResult = _runner.MoveInDirection(_runner.Party.Facing);
+                turnAdvanced = true;
                 break;
             case PartyActionType.MoveBackward:
-                moveResult = TryMoveParty(_runner.Party.Facing.Opposite());
+                moveResult = _runner.MoveInDirection(_runner.Party.Facing.Opposite());
+                turnAdvanced = true;
                 break;
             case PartyActionType.StrafeLeft:
-                moveResult = TryMoveParty(_runner.Party.Facing.TurnLeft());
+                moveResult = _runner.MoveInDirection(_runner.Party.Facing.TurnLeft());
+                turnAdvanced = true;
                 break;
             case PartyActionType.StrafeRight:
-                moveResult = TryMoveParty(_runner.Party.Facing.TurnRight());
+                moveResult = _runner.MoveInDirection(_runner.Party.Facing.TurnRight());
+                turnAdvanced = true;
                 break;
             case PartyActionType.TurnLeft:
                 _runner.TurnLeft();
@@ -64,32 +52,44 @@ public class TurnManager
                 break;
             case PartyActionType.Interact:
                 interactionTriggered = HandleInteraction();
+                turnAdvanced = true;
                 break;
             case PartyActionType.Wait:
+                turnAdvanced = true;
                 break;
         }
 
-        var entityActions = ProcessEntityTurns();
+        if (turnAdvanced)
+            AdvanceTurn();
 
-        var result = new TurnResult(TurnNumber, action, moveResult, entityActions, interactionTriggered);
-        TurnCompleted?.Invoke(result);
-        return result;
+        return new TurnResult(action, moveResult, interactionTriggered);
     }
 
-    // ── Party movement ────────────────────────────────────────────────────────
-
-    private MoveResult TryMoveParty(Direction direction)
+    /// <summary>
+    /// Mock : appelé depuis PlayingScreen (touche X) pour simuler
+    /// qu'un membre a agi. Quand tous ont agi, le tour avance.
+    /// </summary>
+    public void NotifyMemberActed(string characterId)
     {
-        var target = _runner.Party.Position + direction.ToOffset();
+        var member = _runner.Party.Members
+            .FirstOrDefault(m => m.CharacterId == characterId);
+        if (member == null || !member.IsAlive || member.HasActed) return;
 
-        // Entity check before map check so we get the right result enum
-        if (_entitySystem.HasBlockingEntity(target))
-            return MoveResult.BlockedByEntity;
+        member.HasActed = true;
 
-        return _runner.MoveInDirection(direction);
+        if (_runner.Party.AliveMembers.All(m => m.HasActed))
+            AdvanceTurn();
     }
 
-    // ── Interaction ───────────────────────────────────────────────────────────
+    // ── Internals ─────────────────────────────────────────────────────────────
+
+    private void AdvanceTurn()
+    {
+        foreach (var m in _runner.Party.Members)
+            m.HasActed = false;
+
+        TurnAdvanced?.Invoke();
+    }
 
     private bool HandleInteraction()
     {
@@ -99,36 +99,11 @@ public class TurnManager
         switch (view.FacingTarget.Type)
         {
             case InteractionType.Door:
-                // Open the door: make the tile passable
                 view.FacingTarget.Tile.IsSolid = false;
-                view.FacingTarget.Tile.Tag     = TileTag.DoorOpen;
+                view.FacingTarget.Tile.Tag = TileTag.DoorOpen;
                 return true;
-
-            case InteractionType.Npc:
-            case InteractionType.Item:
-            case InteractionType.StairsUp:
-            case InteractionType.StairsDown:
-                // Signal the game layer to handle these (dialogue, pickup, floor change)
-                return true;
-
             default:
-                return false;
+                return true;
         }
-    }
-
-    // ── Entity turns ──────────────────────────────────────────────────────────
-
-    private IReadOnlyList<EntityAction> ProcessEntityTurns()
-    {
-        var actions = new List<EntityAction>();
-
-        // Snapshot the list so a behavior can't affect which monsters act this turn
-        foreach (var monster in _entitySystem.GetAll<MonsterEntity>().ToList())
-        {
-            if (!monster.IsActive) continue;
-            actions.Add(monster.Behavior.Act(monster, _entitySystem, _runner.Map, _runner.Party));
-        }
-
-        return actions;
     }
 }

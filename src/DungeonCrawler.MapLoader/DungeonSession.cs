@@ -1,6 +1,5 @@
 ﻿using DungeonCrawler.Core;
 using DungeonCrawler.Core.Characters;
-using DungeonCrawler.Core.Entities;
 using DungeonCrawler.Core.Models;
 using DungeonCrawler.Core.Rendering;
 using DungeonCrawler.Core.Systems;
@@ -22,9 +21,9 @@ public class DungeonSession
     public TurnManager Turns { get; private set; }
     public BiomeTextures? CurrentBiomeTextures { get; private set; }
 
-    public event Action<BiomeTextures?>? MapChanged;
+    public int TurnNumber => _world?.TurnNumber ?? 0;
 
-    /// <summary>Relayé depuis l'EventSystem interne.</summary>
+    public event Action<BiomeTextures?>? MapChanged;
     public event Action<GameEvent, IReadOnlyList<IGameAction>>? EventFired;
 
     public DungeonSession(
@@ -49,6 +48,8 @@ public class DungeonSession
         if (events != null)
             events.EventFired += (ev, actions) => EventFired?.Invoke(ev, actions);
 
+        SubscribeToTurns(turns);
+
         var initialModule = _loader.GetModule(initialMap.ModuleId);
         CurrentBiomeTextures = initialModule != null
             ? ModuleTexturesConverter.Convert(initialModule)
@@ -56,21 +57,15 @@ public class DungeonSession
 
         if (_world != null)
             ApplyTileInventoryOverrides(initialMap, _world);
-
-        Console.WriteLine($"[Session] Overrides appliqués à la map initiale : {initialMap.Map.Name}");
     }
 
     // ── API exposée au game loop ──────────────────────────────────────────────
 
     public DungeonView GetView() => Runner.GetView();
     public Party Party => Runner.Party;
-    public int TurnNumber => Turns.TurnNumber;
 
-    /// <summary>Appeler après OnEnter pour déclencher les events MapEnter initiaux.</summary>
-    public void NotifyMapEntered()
-    {
-        FireEvent(EventTrigger.MapEnter);
-    }
+    /// <summary>Appeler depuis PlayingScreen.OnEnter() pour déclencher les events MapEnter.</summary>
+    public void NotifyMapEntered() => FireEvent(EventTrigger.MapEnter);
 
     public TurnResult ExecuteAction(PartyActionType action)
     {
@@ -82,9 +77,22 @@ public class DungeonSession
             FireEvent(EventTrigger.TileEnter);
         }
 
-        FireEvent(EventTrigger.TurnPassed);
-
         return result;
+    }
+
+    // ── Gestion des tours ─────────────────────────────────────────────────────
+
+    private void SubscribeToTurns(TurnManager turns)
+    {
+        turns.TurnAdvanced += OnTurnAdvanced;
+    }
+
+    private void OnTurnAdvanced()
+    {
+        if (_world != null)
+            _world.TurnNumber++;
+
+        FireEvent(EventTrigger.TurnPassed);
     }
 
     // ── Events ────────────────────────────────────────────────────────────────
@@ -96,7 +104,7 @@ public class DungeonSession
         var ctx = new EventContext
         {
             CurrentMapId = CurrentMap.Map.Name,
-            TurnNumber = Turns.TurnNumber,
+            TurnNumber = TurnNumber,
             PlayerPos = new GridPos(Runner.Party.Position.X, Runner.Party.Position.Y)
         };
 
@@ -113,8 +121,7 @@ public class DungeonSession
         var targetPath = Path.Combine(_mapsPath, $"{transition.TargetMapId}.map.json");
         if (!File.Exists(targetPath))
         {
-            Console.Error.WriteLine(
-                $"[DungeonSession] Map cible introuvable : {targetPath}");
+            Console.Error.WriteLine($"[DungeonSession] Map cible introuvable : {targetPath}");
             return;
         }
 
@@ -126,34 +133,36 @@ public class DungeonSession
 
         Runner.Party.Teleport(targetPos, ParseDirection(transition.TargetOrientation));
 
-        var newEntities = new EntitySystem();
-        var newRunner = new DungeonRunner(newMap.Map, Runner.Party, newEntities);
-        var newTurns = new TurnManager(newRunner, newEntities);
+        var newRunner = new DungeonRunner(newMap.Map, Runner.Party);
+        var newTurns = new TurnManager(newRunner);
+
+        // Désabonnement ancien TurnManager, abonnement au nouveau
+        Turns.TurnAdvanced -= OnTurnAdvanced;
+        SubscribeToTurns(newTurns);
 
         CurrentMap = newMap;
-        // Appliquer les overrides d'inventaires de tiles
-        if (_world != null)
-            ApplyTileInventoryOverrides(newMap, _world);
         Runner = newRunner;
         Turns = newTurns;
+
+        if (_world != null)
+            ApplyTileInventoryOverrides(newMap, _world);
 
         var newModule = _loader.GetModule(newMap.ModuleId);
         CurrentBiomeTextures = ModuleTexturesConverter.Convert(newModule ?? new());
         MapChanged?.Invoke(CurrentBiomeTextures);
 
-        // Déclencher MapEnter sur la nouvelle map
         FireEvent(EventTrigger.MapEnter);
     }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private static void ApplyTileInventoryOverrides(LoadedMap map, WorldState world)
     {
         if (!world.TileInventoryOverrides.TryGetValue(map.Map.Name, out var overrides))
             return;
 
-        Console.WriteLine($"[Override] Application sur {map.Map.Name} — {overrides.Count} tile(s)");
         foreach (var (key, items) in overrides)
         {
-            Console.WriteLine($"[Override] Tile {key} : {string.Join(", ", items.Select(kv => $"{kv.Key}×{kv.Value}"))}");
             var parts = key.Split('_');
             if (parts.Length != 2) continue;
             if (!int.TryParse(parts[0], out var x) ||

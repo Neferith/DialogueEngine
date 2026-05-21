@@ -31,19 +31,12 @@ public record EntityAttacked(DungeonEntity Entity, GridPosition Target)
 // ── Turn result ───────────────────────────────────────────────────────────────
 
 public record TurnResult(
-    int                          TurnNumber,
-    PartyActionType              PartyAction,
-
-    /// <summary>Null when the action wasn't a movement (turns, interact, wait).</summary>
-    MoveResult?                  MovementResult,
-
-    IReadOnlyList<EntityAction>  EntityActions,
-    bool                         InteractionTriggered
+    PartyActionType PartyAction,
+    MoveResult? MovementResult,
+    bool InteractionTriggered
 )
 {
-    public bool PartyMoved  => MovementResult == MoveResult.Success;
-    public bool WasBlocked  => MovementResult is MoveResult.BlockedByWall
-                                              or MoveResult.BlockedByEntity;
-
-    public bool PartyUnderAttack => EntityActions.OfType<EntityAttacked>().Any();
+    public bool PartyMoved => MovementResult == MoveResult.Success;
+    public bool WasBlocked => MovementResult is MoveResult.BlockedByWall
+                                             or MoveResult.BlockedByEntity;
 }
