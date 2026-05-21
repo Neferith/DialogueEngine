@@ -34,7 +34,8 @@ public static class CharacterMapper
         Level = c.Level.Level,
         Experience = c.Level.Experience,
 
-        SkillIds = c.Skills.All.Select(s => s.SkillId).ToList()
+        SkillIds = c.Skills.All.Select(s => s.SkillId).ToList(),
+        Inventory = new Dictionary<string, int>(c.Inventory.Items)
     };
 
     // ── CharacterSaveData → Character ─────────────────────────────────────────
@@ -69,7 +70,12 @@ public static class CharacterMapper
                       .Cast<Injury>()
                       .ToList());
 
-        return character.WithState(state);
+        var finalCharacter = character.WithState(state);
+
+        foreach (var (itemId, qty) in d.Inventory)
+            finalCharacter.Inventory.Add(itemId, qty);
+
+        return finalCharacter;
     }
 
     // ── Injury ────────────────────────────────────────────────────────────────

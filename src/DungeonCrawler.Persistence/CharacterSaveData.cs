@@ -30,6 +30,9 @@ public class CharacterSaveData
 
     // ── Compétences ───────────────────────────────────────────────────────────
     public List<string> SkillIds { get; set; } = new();
+
+    // ── Inventaire ────────────────────────────────────────────────────────────
+    public Dictionary<string, int> Inventory { get; set; } = new();
 }
 
 public class InjurySaveData
